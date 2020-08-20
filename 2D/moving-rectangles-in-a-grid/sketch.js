@@ -3,8 +3,8 @@
 
 let colorArray = ["#d2f1e4", "#fbcaef", "#f865b0", "#e637bf", "#48304d", "#e637bf", "#f865b0", "#fbcaef"]
 
-let gridSize = 9; // Change the grid size (4, 9, 16, 25, 36, 49)
-let gridSizeLen = Math.sqrt(gridSize);
+let gridSize = 3; // Change the grid size (1, 2, 3, 4, 5, 6)
+let nrOfCellsInGrid = gridSize*gridSize;
 let noiseXOffset = 0.002; // Increase for higher noise variations
 let gridArray = [];
 let baseHeight;
@@ -16,11 +16,11 @@ function setup() {
   frameRate(30);
   createCanvas(600, 600);
   
-  maxWidth = 600 / gridSizeLen;
-  maxHeight = 600 / gridSizeLen;
+  maxWidth = 600 / gridSize;
+  maxHeight = 600 / gridSize;
   baseHeight = maxHeight / colorArray.length;
   nrOfRows =  Math.ceil(maxHeight/baseHeight);
-  for (let i = 0; i < gridSize; i++) {
+  for (let i = 0; i < nrOfCellsInGrid; i++) {
     let boxArray = [];
     let noiseArray = [];
     for (let r = 0; r < nrOfRows; r++) {
@@ -40,7 +40,7 @@ function setup() {
 
 function draw() {
   background(220);
-  for (let i = 0; i < gridSize; i++) {
+  for (let i = 0; i < nrOfCellsInGrid; i++) {
     let boxArray = gridArray[i][1];
     let noiseArray = gridArray[i][2];
     for (let r = 0; r < nrOfRows; r++) {
@@ -56,9 +56,9 @@ class Box {
     constructor(i, row, maxWidth, color1, color2) {
       this.i = i;
       this.row = row;
-      this.column = i % gridSizeLen;
+      this.column = i % gridSize;
       this.x = this.column * maxWidth;
-      this.y = (Math.floor(i/gridSizeLen) * maxHeight) + row * baseHeight;
+      this.y = (Math.floor(i/gridSize) * maxHeight) + row * baseHeight;
       this.w1 = maxWidth;
       this.w2 = maxWidth;
       this.h = baseHeight;
