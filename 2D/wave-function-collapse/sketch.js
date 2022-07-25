@@ -9,7 +9,7 @@
 // Array for tiles and tile images
 let tiles = [];
 const tileImages = [];
-const nrOfImages = 8;
+const nrOfImages = 10;
 
 // Current state of the grid
 let grid = [];
@@ -47,13 +47,15 @@ function setup() {
   tiles[5] = new Tile(tileImages[5], ["B", "C", "B", "A"]);
   tiles[6] = new Tile(tileImages[6], ["B", "DE", "ED", "A"]);
   tiles[7] = new Tile(tileImages[7], ["DE", "F", "ED", "A"]);
-
+  tiles[8] = new Tile(tileImages[8], ["B", "B", "B", "A"]);
+  tiles[9] = new Tile(tileImages[9], ["B", "A", "A", "A"]);
+  
   for (let i = 0; i < nrOfImages; i++) {
     tiles[i].index = i;
   }
 
-  const initialTileCount = tiles.length;
-  for (let i = 0; i < initialTileCount; i++) {
+  // Only rotate tiles 4-8
+  for (let i = 4; i < 10; i++) {
     let tempTiles = [];
     for (let j = 0; j < 4; j++) {
       tempTiles.push(tiles[i].rotate(j));
