@@ -6,18 +6,15 @@
 // Code from Challenge: https://editor.p5js.org/codingtrain/sketches/pLW3_PNDM
 // Corrected and Expanded: https://github.com/CodingTrain/Wave-Function-Collapse
 
-// Array for tiles and tile images
 let tiles = [];
+let grid = [];
 const tileImages = [];
 const nrOfImages = 10;
+const dimension = 25;
+const resolution = 750;
+const cellWidth = resolution / dimension;
+const cellHeight = resolution / dimension;
 
-// Current state of the grid
-let grid = [];
-
-// Width and height of each cell
-const DIM = 25;
-
-// Load images
 function preload() {
   const path = "tiles";
   for (let i = 0; i < nrOfImages; i++) {
@@ -36,7 +33,10 @@ function removeDuplicatedTiles(tiles) {
 
 
 function setup() {
-  createCanvas(800, 800);
+  createCanvas(resolution, resolution);
+  textFont('monospace');
+  textSize(10);
+  textAlign(CENTER, CENTER);
 
   // Create and label the tiles
   tiles[0] = new Tile(tileImages[0], ["A", "A", "A", "A"]);
@@ -63,7 +63,7 @@ function setup() {
     tempTiles = removeDuplicatedTiles(tempTiles);
     tiles = tiles.concat(tempTiles);
   }
-  console.log(tiles.length);
+  //console.log(tiles.length);
 
   // Generate the adjacency rules based on edges
   for (let i = 0; i < tiles.length; i++) {
@@ -76,7 +76,7 @@ function setup() {
 
 function startOver() {
   // Create cell for each spot on the grid
-  for (let i = 0; i < DIM * DIM; i++) {
+  for (let i = 0; i < dimension * dimension; i++) {
     grid[i] = new Cell(tiles.length);
   }
 }
@@ -93,29 +93,29 @@ function checkValid(arr, valid) {
       arr.splice(i, 1);
     }
   }
-  // console.log(arr);
-  // console.log("----------");
+  //console.log(arr);
+  //console.log("----------");
 }
 
 function mousePressed() {
-  redraw();
+  startOver();
 }
 
 function draw() {
   background(0);
 
-  const w = width / DIM;
-  const h = height / DIM;
-  for (let j = 0; j < DIM; j++) {
-    for (let i = 0; i < DIM; i++) {
-      let cell = grid[i + j * DIM];
+  for (let j = 0; j < dimension; j++) {
+    for (let i = 0; i < dimension; i++) {
+      let cell = grid[i + j * dimension];
       if (cell.collapsed) {
         let index = cell.options[0];
-        image(tiles[index].img, i * w, j * h, w, h);
+        image(tiles[index].img, i * cellWidth, j * cellHeight, cellWidth, cellHeight);
       } else {
         noFill();
         stroke(51);
-        rect(i * w, j * h, w, h);
+        rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+        stroke(255);
+        text(cell.entropy, i * cellWidth + cellWidth / 2, j * cellHeight + cellHeight / 2);
       }
     }
   }
@@ -123,8 +123,8 @@ function draw() {
   // Pick cell with least entropy
   let gridCopy = grid.slice();
   gridCopy = gridCopy.filter((a) => !a.collapsed);
-  // console.table(grid);
-  // console.table(gridCopy);
+  //console.table(grid);
+  //console.table(gridCopy);
 
   if (gridCopy.length == 0) {
     return;
@@ -146,23 +146,24 @@ function draw() {
   const cell = random(gridCopy);
   cell.collapsed = true;
   const pick = random(cell.options);
+  cell.options = [pick ? pick : 0];
   if (pick === undefined) {
-    startOver();
+    //startOver();
+    console.log("pick is undefined")
     return;
   }
-  cell.options = [pick];
 
   const nextGrid = [];
-  for (let j = 0; j < DIM; j++) {
-    for (let i = 0; i < DIM; i++) {
-      let index = i + j * DIM;
+  for (let j = 0; j < dimension; j++) {
+    for (let i = 0; i < dimension; i++) {
+      let index = i + j * dimension;
       if (grid[index].collapsed) {
         nextGrid[index] = grid[index];
       } else {
         let options = new Array(tiles.length).fill(0).map((x, i) => i);
         // Look up
         if (j > 0) {
-          let up = grid[i + (j - 1) * DIM];
+          let up = grid[i + (j - 1) * dimension];
           let validOptions = [];
           for (let option of up.options) {
             let valid = tiles[option].down;
@@ -171,8 +172,8 @@ function draw() {
           checkValid(options, validOptions);
         }
         // Look right
-        if (i < DIM - 1) {
-          let right = grid[i + 1 + j * DIM];
+        if (i < dimension - 1) {
+          let right = grid[i + 1 + j * dimension];
           let validOptions = [];
           for (let option of right.options) {
             let valid = tiles[option].left;
@@ -181,8 +182,8 @@ function draw() {
           checkValid(options, validOptions);
         }
         // Look down
-        if (j < DIM - 1) {
-          let down = grid[i + (j + 1) * DIM];
+        if (j < dimension - 1) {
+          let down = grid[i + (j + 1) * dimension];
           let validOptions = [];
           for (let option of down.options) {
             let valid = tiles[option].up;
@@ -192,7 +193,7 @@ function draw() {
         }
         // Look left
         if (i > 0) {
-          let left = grid[i - 1 + j * DIM];
+          let left = grid[i - 1 + j * dimension];
           let validOptions = [];
           for (let option of left.options) {
             let valid = tiles[option].right;
