@@ -35,7 +35,7 @@ function removeDuplicatedTiles(tiles) {
 function setup() {
   createCanvas(resolution, resolution);
   textFont('monospace');
-  textSize(10);
+  textSize(12);
   textAlign(CENTER, CENTER);
 
   // Create and label the tiles
@@ -99,6 +99,13 @@ function checkValid(arr, valid) {
 
 function mousePressed() {
   startOver();
+}
+
+function keyPressed(){
+  // save image canvas
+  if (key === 's') {
+    saveCanvas('WaveFunctionCollapse', 'png');
+  }
 }
 
 function draw() {
