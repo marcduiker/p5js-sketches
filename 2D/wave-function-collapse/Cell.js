@@ -5,6 +5,7 @@
 class Cell {
     constructor(value) {
       this.collapsed = false;
+      this.strokeColor = color(51);
 
       if (value instanceof Array) {
         this.options = value;

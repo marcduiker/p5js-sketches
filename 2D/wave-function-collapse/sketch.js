@@ -9,7 +9,7 @@
 let tiles = [];
 let grid = [];
 const tileImages = [];
-const nrOfImages = 10;
+const nrOfImages = 12;
 const dimension = 25;
 const resolution = 750;
 const cellWidth = resolution / dimension;
@@ -46,16 +46,18 @@ function setup() {
   tiles[4] = new Tile(tileImages[4], ["B", "B", "A", "A"]);
   tiles[5] = new Tile(tileImages[5], ["B", "C", "B", "A"]);
   tiles[6] = new Tile(tileImages[6], ["B", "DE", "ED", "A"]);
-  tiles[7] = new Tile(tileImages[7], ["DE", "F", "ED", "A"]);
-  tiles[8] = new Tile(tileImages[8], ["B", "B", "B", "A"]);
-  tiles[9] = new Tile(tileImages[9], ["B", "A", "A", "A"]);
+  tiles[7] = new Tile(tileImages[7], ["B", "A", "DE", "ED"]);
+  tiles[8] = new Tile(tileImages[8], ["DE", "F", "ED", "A"]);
+  tiles[9] = new Tile(tileImages[9], ["B", "B", "B", "A"]);
+  tiles[10] = new Tile(tileImages[10], ["B", "A", "A", "A"]);
+  tiles[11] = new Tile(tileImages[11], ["A", "C", "A", "B"]);
   
   for (let i = 0; i < nrOfImages; i++) {
     tiles[i].index = i;
   }
 
   // Only rotate tiles 4-8
-  for (let i = 4; i < 10; i++) {
+  for (let i = 4; i < nrOfImages + 1; i++) {
     let tempTiles = [];
     for (let j = 0; j < 4; j++) {
       tempTiles.push(tiles[i].rotate(j));
@@ -119,9 +121,9 @@ function draw() {
         image(tiles[index].img, i * cellWidth, j * cellHeight, cellWidth, cellHeight);
       } else {
         noFill();
-        stroke(51);
+        stroke(cell.strokeColor);
         rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-        stroke(255);
+        stroke(map(cell.entropy, 1, tiles.length, 255, 30));
         text(cell.entropy, i * cellWidth + cellWidth / 2, j * cellHeight + cellHeight / 2);
       }
     }
@@ -153,11 +155,11 @@ function draw() {
   const cell = random(gridCopy);
   cell.collapsed = true;
   const pick = random(cell.options);
-  cell.options = [pick ? pick : 0];
+  cell.options = [pick];
   if (pick === undefined) {
     //startOver();
     console.log("pick is undefined")
-    return;
+    //return;
   }
 
   const nextGrid = [];
