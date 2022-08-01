@@ -1,11 +1,11 @@
-const nrOfImages = 17;
+const nrOfImages = 18;
 let tiles = [];
 
 function loadTiles() {
   tiles[0] = new Tile(tileImages[0], ["A", "A", "A", "A"]); // white dot
-  tiles[1] = new Tile(tileImages[1], ["B", "A", "B", "A"], 2); // vertical chain
+  tiles[1] = new Tile(tileImages[1], ["B", "A", "B", "A"], 4); // vertical chain
   tiles[2] = new Tile(tileImages[2], ["B", "B", "B", "B"], 0.5); // cross
-  tiles[3] = new Tile(tileImages[3], ["A", "B", "A", "B"], 2); // horizontal chain
+  tiles[3] = new Tile(tileImages[3], ["A", "B", "A", "B"], 4); // horizontal chain
   tiles[4] = new Tile(tileImages[4], ["B", "B", "A", "A"]); // elbow
   tiles[5] = new Tile(tileImages[5], ["B", "C", "B", "A"]); // white connector
   tiles[6] = new Tile(tileImages[6], ["B", "DE", "ED", "A"], 3); // blue connector
@@ -14,11 +14,12 @@ function loadTiles() {
   tiles[9] = new Tile(tileImages[9], ["B", "B", "B", "A"], 0.5); // T
   tiles[10] = new Tile(tileImages[10], ["B", "A", "A", "A"]); // large white dot
   tiles[11] = new Tile(tileImages[11], ["A", "C", "A", "B"]); // pink connector
-  tiles[12] = new Tile(tileImages[12], ["A", "C", "B", "A"], 2); // white/black elbow
+  tiles[12] = new Tile(tileImages[12], ["A", "C", "B", "A"], 1); // white/black elbow
   tiles[13] = new Tile(tileImages[13], ["A", "C", "A", "C"], 2); // white/ black hor
   tiles[14] = new Tile(tileImages[14], ["B", "GH", "HG", "A"], 3); // black connector
   tiles[15] = new Tile(tileImages[15], ["B", "A", "GH", "HG"]); // black connector hor mirror
   tiles[16] = new Tile(tileImages[16], ["GH", "I", "HG", "A"]); // black middle
+  tiles[17] = new Tile(tileImages[17], ["A", "A", "B", "C"], 1); // white/black elbow mirror
 
   for (let i = 0; i < nrOfImages; i++) {
     tiles[i].index = i;
