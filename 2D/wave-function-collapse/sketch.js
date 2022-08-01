@@ -6,10 +6,8 @@
 // Code from Challenge: https://editor.p5js.org/codingtrain/sketches/pLW3_PNDM
 // Corrected and Expanded: https://github.com/CodingTrain/Wave-Function-Collapse
 
-let tiles = [];
 let grid = [];
 const tileImages = [];
-const nrOfImages = 12;
 const dimensionX = 25;
 const resolutionX = 800;
 const resolutionY = 600;
@@ -24,15 +22,6 @@ function preload() {
   }
 }
 
-function removeDuplicatedTiles(tiles) {
-  const uniqueTilesMap = {};
-  for (const tile of tiles) {
-    const key = tile.edges.join(','); // ex: "ABB,BCB,BBA,AAA"
-    uniqueTilesMap[key] = tile;
-  }
-  return Object.values(uniqueTilesMap);
-}
-
 
 function setup() {
   createCanvas(resolutionX, resolutionY);
@@ -40,40 +29,7 @@ function setup() {
   textSize(12);
   textAlign(CENTER, CENTER);
 
-  // Create and label the tiles
-  tiles[0] = new Tile(tileImages[0], ["A", "A", "A", "A"]);
-  tiles[1] = new Tile(tileImages[1], ["B", "A", "B", "A"]);
-  tiles[2] = new Tile(tileImages[2], ["B", "B", "B", "B"]);
-  tiles[3] = new Tile(tileImages[3], ["A", "B", "A", "B"]);
-  tiles[4] = new Tile(tileImages[4], ["B", "B", "A", "A"]);
-  tiles[5] = new Tile(tileImages[5], ["B", "C", "B", "A"]);
-  tiles[6] = new Tile(tileImages[6], ["B", "DE", "ED", "A"]);
-  tiles[7] = new Tile(tileImages[7], ["B", "A", "DE", "ED"]);
-  tiles[8] = new Tile(tileImages[8], ["DE", "F", "ED", "A"]);
-  tiles[9] = new Tile(tileImages[9], ["B", "B", "B", "A"]);
-  tiles[10] = new Tile(tileImages[10], ["B", "A", "A", "A"]);
-  tiles[11] = new Tile(tileImages[11], ["A", "C", "A", "B"]);
-  
-  for (let i = 0; i < nrOfImages; i++) {
-    tiles[i].index = i;
-  }
-
-  // Only rotate tiles 4-8
-  for (let i = 4; i < nrOfImages + 1; i++) {
-    let tempTiles = [];
-    for (let j = 0; j < 4; j++) {
-      tempTiles.push(tiles[i].rotate(j));
-    }
-    tempTiles = removeDuplicatedTiles(tempTiles);
-    tiles = tiles.concat(tempTiles);
-  }
-  //console.log(tiles.length);
-
-  // Generate the adjacency rules based on edges
-  for (let i = 0; i < tiles.length; i++) {
-    const tile = tiles[i];
-    tile.analyze(tiles);
-  }
+  loadTiles();
 
   startOver();
 }
@@ -130,8 +86,6 @@ function draw() {
   // Pick cell with least entropy
   let gridCopy = grid.slice();
   gridCopy = gridCopy.filter((a) => !a.collapsed);
-  //console.table(grid);
-  //console.table(gridCopy);
 
   if (gridCopy.length == 0) {
     return;
@@ -140,10 +94,10 @@ function draw() {
     return a.options.length - b.options.length;
   });
 
-  let len = gridCopy[0].options.length;
+  let nrOfOptions = gridCopy[0].options.length;
   let stopIndex = 0;
   for (let i = 1; i < gridCopy.length; i++) {
-    if (gridCopy[i].options.length > len) {
+    if (gridCopy[i].options.length > nrOfOptions) {
       stopIndex = i;
       break;
     }
@@ -152,7 +106,7 @@ function draw() {
   if (stopIndex > 0) gridCopy.splice(stopIndex);
   const cell = random(gridCopy);
   cell.collapsed = true;
-  const pick = random(cell.options);
+  const pick = pickTile(cell.options);
   cell.options = [pick];
   if (pick === undefined) {
     //startOver();
@@ -216,4 +170,11 @@ function draw() {
   }
 
   grid = nextGrid;
+}
+
+function pickTile(cellOptions) {
+  const sortedOptions = cellOptions.sort((a,b) => a.priority - b.priority);
+  const maxLen = sortedOptions.length > 2 ? 3 : sortedOptions.length;
+  const prioOptions = sortedOptions.slice(0, maxLen);
+  return random(prioOptions);
 }

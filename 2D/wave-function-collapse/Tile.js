@@ -7,13 +7,14 @@ function compareEdge(a, b) {
 }
 
 class Tile {
-  constructor(img, edges) {
+  constructor(img, edges, priority) {
     this.img = img;
     this.edges = edges;
     this.up = [];
     this.right = [];
     this.down = [];
     this.left = [];
+    this.priority = priority ?? 1;
   }
 
   analyze(tiles) {
@@ -55,6 +56,6 @@ class Tile {
     for (let i = 0; i < len; i++) {
       newEdges[i] = this.edges[(i - num + len) % len];
     }
-    return new Tile(newImg, newEdges);
+    return new Tile(newImg, newEdges, this.chance);
   }
 }
