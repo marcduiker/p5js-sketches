@@ -10,10 +10,12 @@ let tiles = [];
 let grid = [];
 const tileImages = [];
 const nrOfImages = 12;
-const dimension = 25;
-const resolution = 750;
-const cellWidth = resolution / dimension;
-const cellHeight = resolution / dimension;
+const dimensionX = 25;
+const resolutionX = 800;
+const resolutionY = 600;
+const dimensionY = Math.floor(dimensionX * resolutionY / resolutionX);
+const cellWidth = resolutionX / dimensionX;
+const cellHeight = resolutionY / dimensionY;
 
 function preload() {
   const path = "tiles";
@@ -33,7 +35,7 @@ function removeDuplicatedTiles(tiles) {
 
 
 function setup() {
-  createCanvas(resolution, resolution);
+  createCanvas(resolutionX, resolutionY);
   textFont('monospace');
   textSize(12);
   textAlign(CENTER, CENTER);
@@ -78,32 +80,27 @@ function setup() {
 
 function startOver() {
   // Create cell for each spot on the grid
-  for (let i = 0; i < dimension * dimension; i++) {
+  for (let i = 0; i < dimensionX * dimensionY; i++) {
     grid[i] = new Cell(tiles.length);
   }
 }
 
 function checkValid(arr, valid) {
-  //console.log(arr, valid);
   for (let i = arr.length - 1; i >= 0; i--) {
-    // VALID: [BLANK, RIGHT]
-    // ARR: [BLANK, UP, RIGHT, DOWN, LEFT]
-    // result in removing UP, DOWN, LEFT
     let element = arr[i];
-    // console.log(element, valid.includes(element));
     if (!valid.includes(element)) {
       arr.splice(i, 1);
     }
   }
-  //console.log(arr);
-  //console.log("----------");
 }
 
-function mousePressed() {
-  startOver();
+function keyTyped() {
+  if (key === 'r') {
+    startOver();
+  }
 }
 
-function keyPressed(){
+function keyTyped(){
   // save image canvas
   if (key === 's') {
     saveCanvas('WaveFunctionCollapse', 'png');
@@ -113,10 +110,11 @@ function keyPressed(){
 function draw() {
   background(0);
 
-  for (let j = 0; j < dimension; j++) {
-    for (let i = 0; i < dimension; i++) {
-      let cell = grid[i + j * dimension];
-      if (cell.collapsed) {
+  for (let j = 0; j < dimensionY; j++) {
+    for (let i = 0; i < dimensionX; i++) {
+      const gridIndex = j * dimensionX + i;
+      let cell = grid[gridIndex];
+      if (cell && cell.collapsed) {
         let index = cell.options[0];
         image(tiles[index].img, i * cellWidth, j * cellHeight, cellWidth, cellHeight);
       } else {
@@ -163,16 +161,16 @@ function draw() {
   }
 
   const nextGrid = [];
-  for (let j = 0; j < dimension; j++) {
-    for (let i = 0; i < dimension; i++) {
-      let index = i + j * dimension;
-      if (grid[index].collapsed) {
-        nextGrid[index] = grid[index];
+  for (let j = 0; j < dimensionY; j++) {
+    for (let i = 0; i < dimensionX; i++) {
+      const gridIndex = j * dimensionX + i;
+      if (grid[gridIndex].collapsed) {
+        nextGrid[gridIndex] = grid[gridIndex];
       } else {
         let options = new Array(tiles.length).fill(0).map((x, i) => i);
         // Look up
         if (j > 0) {
-          let up = grid[i + (j - 1) * dimension];
+          let up = grid[i + (j - 1) * dimensionX];
           let validOptions = [];
           for (let option of up.options) {
             let valid = tiles[option].down;
@@ -181,8 +179,8 @@ function draw() {
           checkValid(options, validOptions);
         }
         // Look right
-        if (i < dimension - 1) {
-          let right = grid[i + 1 + j * dimension];
+        if (i < dimensionX - 1) {
+          let right = grid[i + 1 + j * dimensionX];
           let validOptions = [];
           for (let option of right.options) {
             let valid = tiles[option].left;
@@ -191,8 +189,8 @@ function draw() {
           checkValid(options, validOptions);
         }
         // Look down
-        if (j < dimension - 1) {
-          let down = grid[i + (j + 1) * dimension];
+        if (j < dimensionY - 1) {
+          let down = grid[i + (j + 1) * dimensionX];
           let validOptions = [];
           for (let option of down.options) {
             let valid = tiles[option].up;
@@ -202,7 +200,7 @@ function draw() {
         }
         // Look left
         if (i > 0) {
-          let left = grid[i - 1 + j * dimension];
+          let left = grid[i - 1 + j * dimensionX];
           let validOptions = [];
           for (let option of left.options) {
             let valid = tiles[option].right;
@@ -212,7 +210,7 @@ function draw() {
         }
 
         // I could immediately collapse if only one option left?
-        nextGrid[index] = new Cell(options);
+        nextGrid[gridIndex] = new Cell(options);
       }
     }
   }
