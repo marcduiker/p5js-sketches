@@ -8,9 +8,9 @@
 
 let grid = [];
 const tileImages = [];
-const dimensionX = 25;
-const resolutionX = 800;
-const resolutionY = 600;
+const dimensionX = 50;
+const resolutionX = 1280;
+const resolutionY = 960;
 const dimensionY = Math.floor(dimensionX * resolutionY / resolutionX);
 const cellWidth = resolutionX / dimensionX;
 const cellHeight = resolutionY / dimensionY;
@@ -50,16 +50,12 @@ function checkValid(arr, valid) {
   }
 }
 
-function keyTyped() {
-  if (key === 'r') {
-    startOver();
-  }
-}
-
 function keyTyped(){
-  // save image canvas
   if (key === 's') {
     saveCanvas('WaveFunctionCollapse', 'png');
+  }
+  if (key === 'r') {
+    startOver();
   }
 }
 
@@ -70,7 +66,7 @@ function draw() {
     for (let i = 0; i < dimensionX; i++) {
       const gridIndex = j * dimensionX + i;
       let cell = grid[gridIndex];
-      if (cell && cell.collapsed) {
+      if (cell.collapsed) {
         let index = cell.options[0];
         image(tiles[index].img, i * cellWidth, j * cellHeight, cellWidth, cellHeight);
       } else {
@@ -173,7 +169,9 @@ function draw() {
 }
 
 function pickTile(cellOptions) {
-  const sortedOptions = cellOptions.sort((a,b) => a.priority - b.priority);
+  const sortedOptions = cellOptions.sort((a,b) => { 
+    return tiles[b].priority - tiles[a].priority
+  });
   const maxLen = sortedOptions.length > 2 ? 3 : sortedOptions.length;
   const prioOptions = sortedOptions.slice(0, maxLen);
   return random(prioOptions);

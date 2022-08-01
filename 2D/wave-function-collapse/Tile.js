@@ -56,6 +56,6 @@ class Tile {
     for (let i = 0; i < len; i++) {
       newEdges[i] = this.edges[(i - num + len) % len];
     }
-    return new Tile(newImg, newEdges, this.chance);
+    return new Tile(newImg, newEdges, this.priority);
   }
 }
