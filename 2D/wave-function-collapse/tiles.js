@@ -2,7 +2,7 @@ const nrOfImages = 18;
 let tiles = [];
 
 function loadTiles() {
-  tiles[0] = new Tile(tileImages[0], ["A", "A", "A", "A"]); // white dot
+  tiles[0] = new Tile(tileImages[0], ["A", "A", "A", "A"], 0.5); // white dot
   tiles[1] = new Tile(tileImages[1], ["B", "A", "B", "A"], 4); // vertical chain
   tiles[2] = new Tile(tileImages[2], ["B", "B", "B", "B"], 0.5); // cross
   tiles[3] = new Tile(tileImages[3], ["A", "B", "A", "B"], 4); // horizontal chain
@@ -11,7 +11,7 @@ function loadTiles() {
   tiles[6] = new Tile(tileImages[6], ["B", "DE", "ED", "A"], 3); // blue connector
   tiles[7] = new Tile(tileImages[7], ["B", "A", "DE", "ED"]); // blue connector hor mirror
   tiles[8] = new Tile(tileImages[8], ["DE", "F", "ED", "A"]); // blue middle
-  tiles[9] = new Tile(tileImages[9], ["B", "B", "B", "A"], 0.5); // T
+  tiles[9] = new Tile(tileImages[9], ["B", "B", "B", "A"], 1); // T
   tiles[10] = new Tile(tileImages[10], ["B", "A", "A", "A"]); // large white dot
   tiles[11] = new Tile(tileImages[11], ["A", "C", "A", "B"]); // pink connector
   tiles[12] = new Tile(tileImages[12], ["A", "C", "B", "A"], 1); // white/black elbow

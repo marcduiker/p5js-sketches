@@ -9,9 +9,9 @@
 let manual = true;
 let grid = [];
 const tileImages = [];
-const dimensionX = 70;
-const resolutionX = 1600;
-const resolutionY = 800;
+const dimensionX = 80; //70
+const resolutionX = 2048; //1600
+const resolutionY = 1024; //800
 const dimensionY = Math.floor((dimensionX * resolutionY) / resolutionX);
 const cellWidth = resolutionX / dimensionX;
 const cellHeight = resolutionY / dimensionY;
@@ -37,23 +37,35 @@ function setup() {
 
 function seedCells() {
   const charHeight = Math.floor(dimensionY / 4 * 3);
-  const startHeight = Math.floor(dimensionY / 4);
+  const startHeight = Math.floor(dimensionY / 4)
   const charWidthA = Math.floor(dimensionX / 8);
   const charWidthR = Math.floor(dimensionX / 8);
   const charWidthC = Math.floor(dimensionX / 8);
-  const charWidthM = Math.floor(dimensionX / 5.5);
+  const charWidthM = Math.floor(dimensionX / 6)-1;
   const lineThickness = 3;
   const kerning = 4;
 
   // M
   let allChars = [];
-  const startM = kerning + 1;
+  const startM = kerning + lineThickness;
   for (let i = startHeight; i < charHeight; i++) {
     for (let w = 0; w < lineThickness; w++) {
       allChars.push([startM + w, i]);
     }
     for (let w = 0; w < lineThickness; w++) {
       allChars.push([startM + charWidthM + w, i]);
+    }
+  }
+  // M horizontal parts
+  for (let j = startM + lineThickness; j < startM + charWidthM; j++) {
+    if (j < startM + lineThickness * 2 || j > startM + lineThickness * 3-1)
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + lineThickness + w]);
+    }
+  }
+  for (let j = startM + lineThickness * 2; j < startM + lineThickness * 3; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + lineThickness * 2 + w]);
     }
   }
   // A
@@ -84,8 +96,10 @@ function seedCells() {
       allChars.push([startR + w, i]);
     }
     if (i > startHeight + lineThickness - 1) {
-      for (let w = 0; w < lineThickness; w++) {
-        allChars.push([startR + charWidthR + w, i]);
+      if (i < startHeight + lineThickness * 3 || i > startHeight + lineThickness * 3 + lineThickness - 1) {
+        for (let w = 0; w < lineThickness; w++) {
+          allChars.push([startR + charWidthR + w, i]);
+        }
       }
     }
   }
@@ -109,12 +123,12 @@ function seedCells() {
     }
   }
   // C horizontal parts
-  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness; j++) {
+  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness+1; j++) {
     for (let w = 0; w < lineThickness; w++) {
       allChars.push([j, startHeight + w]);
     }
   }
-  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness; j++) {
+  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness+1; j++) {
     for (let w = 0; w < lineThickness; w++) {
       allChars.push([j, charHeight - w - 1]);
     }
