@@ -9,9 +9,9 @@
 let manual = true;
 let grid = [];
 const tileImages = [];
-const dimensionX = 35;
-const resolutionX = 1000;
-const resolutionY = 500;
+const dimensionX = 70;
+const resolutionX = 1600;
+const resolutionY = 800;
 const dimensionY = Math.floor((dimensionX * resolutionY) / resolutionX);
 const cellWidth = resolutionX / dimensionX;
 const cellHeight = resolutionY / dimensionY;
@@ -32,6 +32,100 @@ function setup() {
   loadTiles();
 
   startOver();
+  seedCells();
+}
+
+function seedCells() {
+  const charHeight = Math.floor(dimensionY / 4 * 3);
+  const startHeight = Math.floor(dimensionY / 4);
+  const charWidthA = Math.floor(dimensionX / 8);
+  const charWidthR = Math.floor(dimensionX / 8);
+  const charWidthC = Math.floor(dimensionX / 8);
+  const charWidthM = Math.floor(dimensionX / 5.5);
+  const lineThickness = 3;
+  const kerning = 4;
+
+  // M
+  let allChars = [];
+  const startM = kerning + 1;
+  for (let i = startHeight; i < charHeight; i++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startM + w, i]);
+    }
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startM + charWidthM + w, i]);
+    }
+  }
+  // A
+  const startA = startM + charWidthM + kerning * 2 - 1;
+  for (let i = startHeight + lineThickness; i < charHeight; i++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startA + w, i]);
+    }
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startA + charWidthA + w, i]);
+    }
+  }
+  // A horizontal parts
+  for (let j = startA + lineThickness; j < startA + charWidthA; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + w]);
+    }
+  }
+  for (let j = startA + lineThickness; j < startA + charWidthA; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + lineThickness * 3 + w]);
+    }
+  }
+  // R
+  const startR = startA + charWidthA + kerning * 2 - 1;
+  for (let i = startHeight; i < charHeight; i++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startR + w, i]);
+    }
+    if (i > startHeight + lineThickness - 1) {
+      for (let w = 0; w < lineThickness; w++) {
+        allChars.push([startR + charWidthR + w, i]);
+      }
+    }
+  }
+  // R horizontal parts
+  for (let j = startR + lineThickness; j < startR + charWidthR; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + w]);
+    }
+  }
+  for (let j = startR+lineThickness; j < startR + charWidthR; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + lineThickness * 3 + w]);
+    }
+  }
+
+  // C
+  const startC = startR + charWidthR + kerning * 2 - 1;
+  for (let i = startHeight + lineThickness; i < charHeight - lineThickness; i++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([startC + w, i]);
+    }
+  }
+  // C horizontal parts
+  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, startHeight + w]);
+    }
+  }
+  for (let j = startC + lineThickness; j < startC + charWidthC + lineThickness; j++) {
+    for (let w = 0; w < lineThickness; w++) {
+      allChars.push([j, charHeight - w - 1]);
+    }
+  }
+
+  for (const char of allChars) {
+      const gridIndex = char[1] * dimensionX + char[0];
+      let cell = grid[gridIndex];
+      cell.collapsed = true;
+      cell.options = [0];
+  }
 }
 
 function startOver() {
