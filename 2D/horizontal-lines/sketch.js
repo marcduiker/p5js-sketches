@@ -18,7 +18,6 @@ function setup() {
     lines.push(createSmallLine());
     lines.push(createMediumLine());
     lines.push(createMediumLine());
-    lines.push(createMediumToLargeLine());
     lines.push(createLargeLine());
   }
   lines.push(createExtraLargeLine());
@@ -31,10 +30,6 @@ function createSmallLine() {
 
 function createMediumLine() {
   return createRandomLine(random(1, maxWidth / 2));
-}
-
-function createMediumToLargeLine() {
-  return createRandomLine(random(1, maxWidth / 1.5));
 }
 
 function createLargeLine() {
