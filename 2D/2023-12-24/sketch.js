@@ -93,7 +93,7 @@ function drawCells(mX, mY) {
     if (isRunning) return;
     let cellX = Math.floor(mX / cellSize);
     let cellY = Math.floor(mY / cellSize);
-    //console.log(cellX, cellY);
+    if (cellX < 0 || cellY < 0) return;
     let initState = grid[cellX][cellY].state === 1 ? 0 : 1;
     grid[cellX][cellY].setInitialState(initState);
     grid[cellX][cellY].draw();
