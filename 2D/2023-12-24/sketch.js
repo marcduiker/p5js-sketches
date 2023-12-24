@@ -1,17 +1,18 @@
 /// Space debris
 /// Marc Duiker, @marcduiker, Dec 2023
 
-let rows = 32;
-let cols = 32;
+let rows = 64;
+let cols = 64;
 let cellSize;
 let grid = [];
 let cells = [];
 const bgColor = 240;
 let canvasSize = 600
 let isRunning = false;
-let speed = 2;
+let speed = 15;
 let runButton;
 let resetButton;
+let randomButton;
 let slider;
 
 function setup() {
@@ -29,6 +30,12 @@ function setup() {
     });
     resetButton.position(200, 0);
 
+    randomButton = createButton('random');
+    randomButton.mousePressed(() => {
+        loadRandomSeed();
+    });
+    randomButton.position(260, 0);
+
     slider = createSlider(1, 15, speed);
     slider.position(60, 0);
     cellSize = canvasSize / cols;
@@ -39,6 +46,7 @@ function setup() {
         }
     }
     //loadSeed();
+    //loadRandomSeed();
     initDraw();
 }
 
@@ -79,8 +87,15 @@ function initDraw() {
     });
 }
 
-function loadSeed() {
+function loadRandomSeed() {
+    grid.forEach(row => {
+        row.forEach(cell => {
+            cell.setInitialState(random([0, 1]));
+        });
+    });
+}
 
+function loadSeed() {
     const seed = [
         [1, 2], //blinker
         [2, 2], //blinker
