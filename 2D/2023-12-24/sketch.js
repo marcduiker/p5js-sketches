@@ -20,7 +20,7 @@ let showLines = false;
 function setup() {
     frameRate(speed);
     createCanvas(canvasWidth, canvasHeight);
-    rowsSlider = createSlider(16, 64, 32, 8);
+    rowsSlider = createSlider(16, 72, 48, 8);
     rowsSlider.position(0, 0);
     rowsSlider.mouseClicked(() => {
         updateRowsAndCols();
