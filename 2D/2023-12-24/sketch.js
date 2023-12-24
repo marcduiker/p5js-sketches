@@ -3,8 +3,8 @@
 
 const canvasWidth = 900;
 const canvasHeight = 600;
-let rows = 64;
-let cols = Math.floor(rows * canvasWidth / canvasHeight);
+let rows;
+let cols;
 let cellSize;
 let grid = [];
 const bgColor = 240;
@@ -13,40 +13,59 @@ let speed = 15;
 let runButton;
 let resetButton;
 let randomButton;
-let slider;
+let speedSlider;
+let rowsSlider;
+let showLines = false;
 
 function setup() {
     frameRate(speed);
     createCanvas(canvasWidth, canvasHeight);
+    rowsSlider = createSlider(16, 64, 32, 8);
+    rowsSlider.position(0, 0);
+    rowsSlider.mouseClicked(() => {
+        updateRowsAndCols();
+    });
+    
     runButton = createButton('start');
     runButton.mousePressed(() => {
         toggleRunning();
     });
-    runButton.position(0, 0);
+    runButton.position(140, 0);
 
     resetButton = createButton('reset');
     resetButton.mousePressed(() => {
         reset();
     });
-    resetButton.position(200, 0);
+    resetButton.position(190, 0);
 
     randomButton = createButton('random');
     randomButton.mousePressed(() => {
         loadRandomSeed();
     });
-    randomButton.position(260, 0);
+    randomButton.position(240, 0);
 
-    slider = createSlider(1, 15, speed);
-    slider.position(60, 0);
+    speedSlider = createSlider(1, 15, speed);
+    speedSlider.position(0, 20);
+    
+    updateRowsAndCols();
+}
+
+function initGrid(cols, rows) {
     cellSize = canvasHeight / rows;
+    grid = [];
     for (let x = 0; x < cols; x++) {
         grid[x] = [];
         for (let y = 0; y < rows; y++) {
             grid[x][y] = new Cell(x, y, cellSize, 0);
         }
     }
+}
 
-    //loadTestSeed();
+function updateRowsAndCols() {
+    rows = rowsSlider.value();
+    cols = Math.floor(rows * canvasWidth / canvasHeight)
+    console.log(rows, cols);
+    initGrid(cols, rows);
     loadRandomSeed();
     initDraw();
 }
@@ -55,6 +74,7 @@ function reset() {
     if (isRunning) {
         toggleRunning();
     }
+    showLines = true;
 
     grid.forEach(row => {
         row.forEach(cell => {
@@ -73,7 +93,7 @@ function drawCells(mX, mY) {
     if (isRunning) return;
     let cellX = Math.floor(mX / cellSize);
     let cellY = Math.floor(mY / cellSize);
-    console.log(cellX, cellY);
+    //console.log(cellX, cellY);
     let initState = grid[cellX][cellY].state === 1 ? 0 : 1;
     grid[cellX][cellY].setInitialState(initState);
     grid[cellX][cellY].draw();
@@ -89,6 +109,7 @@ function toggleRunning() {
 }
 
 function initDraw() {
+    //background(bgColor);
     grid.forEach(row => {
         row.forEach(cell => {
             cell.draw();
@@ -102,6 +123,7 @@ function loadRandomSeed() {
             cell.setInitialState(random([0, 1]));
         });
     });
+    showLines = false;
 }
 
 function loadTestSeed() {
@@ -187,8 +209,7 @@ function loadTestSeed() {
 }
 
 function draw() {
-    frameRate(slider.value());
-
+    frameRate(speedSlider.value());
     background(bgColor);
     if (isRunning) {
         grid.forEach(row => {
@@ -205,8 +226,9 @@ function draw() {
                 cell.draw();
             });
         });
+        drawHelperLines();
     }
-
+    
     if (isRunning) {
         grid.forEach(row => {
             row.forEach(cell => {
@@ -214,6 +236,14 @@ function draw() {
             });
         });
     }
+}
+
+function drawHelperLines() {
+    if (!showLines) return;
+    stroke(0, 0, 250);
+    strokeWeight(2);
+    line(0, rows/2 * cellSize, canvasWidth, rows/2 * cellSize);
+    line(cols/2 * cellSize, 0, cols/2 * cellSize, canvasHeight);
 }
 
 
