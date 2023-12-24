@@ -1,4 +1,4 @@
-/// Space debris
+/// Conway's Game of Life
 /// Marc Duiker, @marcduiker, Dec 2023
 
 const canvasWidth = 900;
