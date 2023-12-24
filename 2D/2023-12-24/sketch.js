@@ -1,13 +1,13 @@
 /// Space debris
 /// Marc Duiker, @marcduiker, Dec 2023
 
+const canvasWidth = 900;
+const canvasHeight = 600;
 let rows = 64;
-let cols = 128;
+let cols = Math.floor(rows * canvasWidth / canvasHeight);
 let cellSize;
 let grid = [];
 const bgColor = 240;
-const canvasWidth = 900;
-const canvasHeight = 600;
 let isRunning = false;
 let speed = 15;
 let runButton;
@@ -45,12 +45,17 @@ function setup() {
             grid[x][y] = new Cell(x, y, cellSize, 0);
         }
     }
-    //loadSeed();
+
+    //loadTestSeed();
     loadRandomSeed();
     initDraw();
 }
 
 function reset() {
+    if (isRunning) {
+        toggleRunning();
+    }
+
     grid.forEach(row => {
         row.forEach(cell => {
             cell.setInitialState(0);
@@ -95,7 +100,7 @@ function loadRandomSeed() {
     });
 }
 
-function loadSeed() {
+function loadTestSeed() {
     const seed = [
         [1, 2], //blinker
         [2, 2], //blinker
@@ -185,16 +190,18 @@ function draw() {
         grid.forEach(row => {
             row.forEach(cell => {
                 cell.update();
+                cell.draw();
             });
         });
     }
-        
-    background(bgColor);
-    grid.forEach(row => {
-        row.forEach(cell => {
-            cell.draw();
+    
+    if (!isRunning) {
+        grid.forEach(row => {
+            row.forEach(cell => {
+                cell.draw();
+            });
         });
-    });
+    }
 
     if (isRunning) {
         grid.forEach(row => {
@@ -216,7 +223,7 @@ class Cell {
         this.state = state;
         this.newState = 0;
         this.color = color(0);
-        this.thickness = 1;
+        this.thickness = 0.5;
         this.neighbourCount = 0;
         this.debugBefore = `Before ${x},${y},${this.state} - `;
         this.debugAfter = 'After ';
@@ -259,6 +266,7 @@ class Cell {
 
     setInitialState(state) {
         this.state = state;
+        this.newState = state;
     }
 
     draw() {
