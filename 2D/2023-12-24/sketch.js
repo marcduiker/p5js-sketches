@@ -109,7 +109,6 @@ function toggleRunning() {
 }
 
 function initDraw() {
-    //background(bgColor);
     grid.forEach(row => {
         row.forEach(cell => {
             cell.draw();
@@ -124,6 +123,44 @@ function loadRandomSeed() {
         });
     });
     showLines = false;
+}
+
+function draw() {
+    frameRate(speedSlider.value());
+    background(bgColor);
+    if (isRunning) {
+        grid.forEach(row => {
+            row.forEach(cell => {
+                cell.update();
+                cell.draw();
+            });
+        });
+    }
+    
+    if (!isRunning) {
+        grid.forEach(row => {
+            row.forEach(cell => {
+                cell.draw();
+            });
+        });
+        drawHelperLines();
+    }
+    
+    if (isRunning) {
+        grid.forEach(row => {
+            row.forEach(cell => {
+                cell.updateState();
+            });
+        });
+    }
+}
+
+function drawHelperLines() {
+    if (!showLines) return;
+    stroke(0, 0, 250);
+    strokeWeight(2);
+    line(0, rows/2 * cellSize, canvasWidth, rows/2 * cellSize);
+    line(cols/2 * cellSize, 0, cols/2 * cellSize, canvasHeight);
 }
 
 function loadTestSeed() {
@@ -208,45 +245,6 @@ function loadTestSeed() {
     });
 }
 
-function draw() {
-    frameRate(speedSlider.value());
-    background(bgColor);
-    if (isRunning) {
-        grid.forEach(row => {
-            row.forEach(cell => {
-                cell.update();
-                cell.draw();
-            });
-        });
-    }
-    
-    if (!isRunning) {
-        grid.forEach(row => {
-            row.forEach(cell => {
-                cell.draw();
-            });
-        });
-        drawHelperLines();
-    }
-    
-    if (isRunning) {
-        grid.forEach(row => {
-            row.forEach(cell => {
-                cell.updateState();
-            });
-        });
-    }
-}
-
-function drawHelperLines() {
-    if (!showLines) return;
-    stroke(0, 0, 250);
-    strokeWeight(2);
-    line(0, rows/2 * cellSize, canvasWidth, rows/2 * cellSize);
-    line(cols/2 * cellSize, 0, cols/2 * cellSize, canvasHeight);
-}
-
-
 class Cell {
     constructor(x, y, size, state) {
         this.x = x;
@@ -256,9 +254,8 @@ class Cell {
         this.size = size;
         this.state = state;
         this.newState = 0;
-        this.color = color(0);
-        this.thickness = 0.5;
         this.neighbourCount = 0;
+        this.age = 0;
         this.debugBefore = `Before ${x},${y},${this.state} - `;
         this.debugAfter = 'After ';
     }
@@ -280,13 +277,17 @@ class Cell {
         if (this.state === 1) {
             if (this.neighbourCount > 3) {
                 this.newState = 0;
+                this.age = 0;
             } else if (this.neighbourCount < 2) {
                 this.newState = 0;
+                this.age = 0;
             } else {
+                this.age++;
                 this.newState = 1;
             }
         } else {
             if (this.neighbourCount === 3) {
+                this.age++;
                 this.newState = 1;
             }
         }
@@ -299,15 +300,15 @@ class Cell {
     }
 
     setInitialState(state) {
+        this.age = 0;
         this.state = state;
         this.newState = state;
     }
 
     draw() {
-        stroke(this.color);
-        strokeWeight(this.thickness);
-        let fillColor = this.state === 1 ? color(0) : color(bgColor);
-        fill(fillColor);
+        stroke(color(100));
+        strokeWeight(0.5);
+        fill(this.getFillColor());
         rect(this.xPos, this.yPos, this.xPos + this.size, this.yPos + this.size);
         //const label = `${this.neighbourCount}-${this.state}`;
         //textAlign(CENTER);
@@ -315,5 +316,18 @@ class Cell {
         //noStroke();
         //fill(textColor);
         //text(label, this.xPos + this.size / 2, this.yPos + this.size / 2);
+    }
+
+    getFillColor() {
+        let fillColor =  this.state === 1 ? color(0) : color(bgColor);
+        // if (this.state === 1 && this.age === 0) {
+        //     fillColor = color(0, 160, 0);
+        // } else {
+        //     fillColor = color(160, 0, 0);
+        // }
+        // if (this.state === 0) {
+        //     fillColor = color(bgColor);
+        // }
+        return fillColor;
     }
 }
