@@ -2,12 +2,12 @@
 /// Marc Duiker, @marcduiker, Dec 2023
 
 let rows = 64;
-let cols = 64;
+let cols = 128;
 let cellSize;
 let grid = [];
-let cells = [];
 const bgColor = 240;
-let canvasSize = 600
+const canvasWidth = 900;
+const canvasHeight = 600;
 let isRunning = false;
 let speed = 15;
 let runButton;
@@ -17,7 +17,7 @@ let slider;
 
 function setup() {
     frameRate(speed);
-    createCanvas(canvasSize, canvasSize);
+    createCanvas(canvasWidth, canvasHeight);
     runButton = createButton('start');
     runButton.mousePressed(() => {
         toggleRunning();
@@ -38,7 +38,7 @@ function setup() {
 
     slider = createSlider(1, 15, speed);
     slider.position(60, 0);
-    cellSize = canvasSize / cols;
+    cellSize = canvasHeight / rows;
     for (let x = 0; x < cols; x++) {
         grid[x] = [];
         for (let y = 0; y < rows; y++) {
@@ -46,7 +46,7 @@ function setup() {
         }
     }
     //loadSeed();
-    //loadRandomSeed();
+    loadRandomSeed();
     initDraw();
 }
 
