@@ -13,6 +13,8 @@ let speed = 15;
 let runButton;
 let resetButton;
 let randomButton;
+let saveButton;
+let loadButton;
 let speedSlider;
 let rowsSlider;
 let showLines = false;
@@ -23,7 +25,7 @@ function setup() {
     rowsSlider = createSlider(16, 72, 48, 8);
     rowsSlider.position(0, 0);
     rowsSlider.mouseClicked(() => {
-        updateRowsAndCols();
+        updateRowsAndColsAndInitGrid();
     });
     
     runButton = createButton('start');
@@ -44,10 +46,22 @@ function setup() {
     });
     randomButton.position(240, 0);
 
+    saveButton = createButton('save');
+    saveButton.mousePressed(() => {
+        saveGrid();
+    });
+    saveButton.position(310, 0);
+
+    loadButton = createButton('load');
+    loadButton.mousePressed(() => {
+        loadGrid();
+    });
+    loadButton.position(360, 0);
+
     speedSlider = createSlider(1, 15, speed);
     speedSlider.position(0, 20);
     
-    updateRowsAndCols();
+    updateRowsAndColsAndInitGrid();
 }
 
 function initGrid(cols, rows) {
@@ -61,7 +75,7 @@ function initGrid(cols, rows) {
     }
 }
 
-function updateRowsAndCols() {
+function updateRowsAndColsAndInitGrid() {
     rows = rowsSlider.value();
     cols = Math.floor(rows * canvasWidth / canvasHeight)
     console.log(rows, cols);
@@ -82,6 +96,24 @@ function reset() {
         });
     });
 
+    initDraw();
+}
+
+function saveGrid() {
+    localStorage.setItem("grid", JSON.stringify(grid));
+}
+
+function loadGrid() {
+    const raw = localStorage.getItem("grid");
+    grid = [];
+    gridUntyped = JSON.parse(raw);
+    gridUntyped.forEach(col => {
+        grid[col[0].x] = [];
+        col.forEach(cell => {
+            typedCell = Object.assign(new Cell, cell);
+            grid[cell.x][cell.y] = typedCell;
+        });
+    });
     initDraw();
 }
 
@@ -256,8 +288,6 @@ class Cell {
         this.newState = 0;
         this.neighbourCount = 0;
         this.age = 0;
-        this.debugBefore = `Before ${x},${y},${this.state} - `;
-        this.debugAfter = 'After ';
     }
 
     update() {
@@ -269,11 +299,9 @@ class Cell {
                 if (this.y + j < 0 || this.y + j >= rows) continue;
                 const x = this.x + i;
                 const y = this.y + j;
-                this.debugBefore += `${x},${y},${grid[x][y].state} - `;
                 this.neighbourCount += grid[x][y].state;
             }
         }
-        //console.log(this.debugBefore);
         if (this.state === 1) {
             if (this.neighbourCount > 3) {
                 this.newState = 0;
@@ -291,8 +319,6 @@ class Cell {
                 this.newState = 1;
             }
         }
-        this.debugAfter += `${this.x},${this.y},${this.newState} - `;
-        //console.log(this.debugAfter);
     }
 
     updateState() {
