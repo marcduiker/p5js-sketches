@@ -14,13 +14,16 @@ let showLines = false;
 
 function setup() {
     frameRate(speed);
-    let canvas = createCanvas(canvasWidth, canvasHeight);
+    const canvas = createCanvas(canvasWidth, canvasHeight);
     canvas.parent('canvas');
 
     const rowsSlider = document.querySelector("#rowsSlider");
-    console.log(rowsSlider);
     rowsSlider.addEventListener("change", (event) => {
         updateRowsAndColsAndInitGrid();
+    });
+    const speedSlider = document.querySelector("#speedSlider");
+    speedSlider.addEventListener("change", (event) => {
+        updateFrameRate();
     });
     updateRowsAndColsAndInitGrid();
 }
@@ -43,6 +46,10 @@ function updateRowsAndColsAndInitGrid() {
     initGrid(cols, rows);
     loadRandomSeed();
     initDraw();
+}
+
+function updateFrameRate() {
+    speed = select("#speedSlider").value();
 }
 
 function reset() {
@@ -119,7 +126,7 @@ function loadRandomSeed() {
 }
 
 function draw() {
-    frameRate(select("#speedSlider").value());
+    frameRate(speed);
     background(bgColor);
     if (isRunning) {
         grid.forEach(row => {
