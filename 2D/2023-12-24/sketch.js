@@ -22,7 +22,7 @@ let showLines = false;
 function setup() {
     frameRate(speed);
     createCanvas(canvasWidth, canvasHeight);
-    rowsSlider = createSlider(16, 72, 48, 8);
+    rowsSlider = createSlider(15, 71, 47, 8);
     rowsSlider.position(0, 0);
     rowsSlider.mouseClicked(() => {
         updateRowsAndColsAndInitGrid();
@@ -34,7 +34,7 @@ function setup() {
     });
     runButton.position(140, 0);
 
-    resetButton = createButton('reset');
+    resetButton = createButton('clear');
     resetButton.mousePressed(() => {
         reset();
     });
@@ -78,7 +78,7 @@ function initGrid(cols, rows) {
 function updateRowsAndColsAndInitGrid() {
     rows = rowsSlider.value();
     cols = Math.floor(rows * canvasWidth / canvasHeight)
-    console.log(rows, cols);
+    if (cols % 2 === 0) cols++;
     initGrid(cols, rows);
     loadRandomSeed();
     initDraw();
