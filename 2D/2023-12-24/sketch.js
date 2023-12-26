@@ -117,11 +117,15 @@ function initDraw() {
 }
 
 function loadRandomSeed() {
-    grid.forEach(row => {
-        row.forEach(cell => {
-            cell.setInitialState(random([0, 1]));
-        });
-    });
+    for (x = 0; x < Math.ceil(cols/2); x++) {
+        for (y = 0; y < Math.ceil(rows/2); y++) {
+            const cellValue = random([0, 1]);
+            grid[x][y].setInitialState(cellValue);
+            grid[cols - x - 1][y].setInitialState(cellValue);
+            grid[x][rows - y - 1].setInitialState(cellValue);
+            grid[cols - x - 1][rows - y - 1].setInitialState(cellValue);
+        }
+    };
     showLines = false;
 }
 
