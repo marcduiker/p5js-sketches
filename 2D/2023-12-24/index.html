@@ -9,6 +9,18 @@
   </head>
 
   <body>
+    <div id="controls">
+      <span>Canvas resolution</span>
+      <input type="range" min="15" max="71" value="47" step="8" id="rowsSlider">
+      <span>Speed</span>
+      <input type="range" min="1" max="15" value="15" id="speedSlider">
+      <button id="runButton" onclick="toggleRunning()">start</button>
+      <button id="resetButton" onclick="reset()">clear</button>
+      <button id="randomButton" onclick="loadRandomSeed()">random</button>
+      <button id="saveButton" onclick="saveGrid()">save</button>
+      <button id="loadButton" onclick="loadGrid()">load</button>
+    </div>
+    <div id="canvas"></div>
     <script src="sketch.js"></script>
   </body>
 </html>

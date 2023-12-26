@@ -10,57 +10,18 @@ let grid = [];
 const bgColor = 240;
 let isRunning = false;
 let speed = 15;
-let runButton;
-let resetButton;
-let randomButton;
-let saveButton;
-let loadButton;
-let speedSlider;
-let rowsSlider;
 let showLines = false;
 
 function setup() {
     frameRate(speed);
-    createCanvas(canvasWidth, canvasHeight);
-    rowsSlider = createSlider(15, 71, 47, 8);
-    rowsSlider.position(0, 0);
-    rowsSlider.mouseClicked(() => {
+    let canvas = createCanvas(canvasWidth, canvasHeight);
+    canvas.parent('canvas');
+
+    const rowsSlider = document.querySelector("#rowsSlider");
+    console.log(rowsSlider);
+    rowsSlider.addEventListener("change", (event) => {
         updateRowsAndColsAndInitGrid();
     });
-    
-    runButton = createButton('start');
-    runButton.mousePressed(() => {
-        toggleRunning();
-    });
-    runButton.position(140, 0);
-
-    resetButton = createButton('clear');
-    resetButton.mousePressed(() => {
-        reset();
-    });
-    resetButton.position(190, 0);
-
-    randomButton = createButton('random');
-    randomButton.mousePressed(() => {
-        loadRandomSeed();
-    });
-    randomButton.position(240, 0);
-
-    saveButton = createButton('save');
-    saveButton.mousePressed(() => {
-        saveGrid();
-    });
-    saveButton.position(310, 0);
-
-    loadButton = createButton('load');
-    loadButton.mousePressed(() => {
-        loadGrid();
-    });
-    loadButton.position(360, 0);
-
-    speedSlider = createSlider(1, 15, speed);
-    speedSlider.position(0, 20);
-    
     updateRowsAndColsAndInitGrid();
 }
 
@@ -76,7 +37,7 @@ function initGrid(cols, rows) {
 }
 
 function updateRowsAndColsAndInitGrid() {
-    rows = rowsSlider.value();
+    rows = select("#rowsSlider").value();
     cols = Math.floor(rows * canvasWidth / canvasHeight)
     if (cols % 2 === 0) cols++;
     initGrid(cols, rows);
@@ -134,9 +95,9 @@ function drawCells(mX, mY) {
 function toggleRunning() {
     isRunning = !isRunning;
     if (isRunning) {
-        runButton.elt.innerText = 'stop';
+        select("#runButton").elt.innerText = 'stop';
     } else {
-        runButton.elt.innerText = 'start';
+        select("#runButton").elt.innerText = 'start';
     }
 }
 
@@ -158,7 +119,7 @@ function loadRandomSeed() {
 }
 
 function draw() {
-    frameRate(speedSlider.value());
+    frameRate(select("#speedSlider").value());
     background(bgColor);
     if (isRunning) {
         grid.forEach(row => {
@@ -281,13 +242,13 @@ class Cell {
     constructor(x, y, size, state) {
         this.x = x;
         this.y = y;
-        this.xPos = x * size;
-        this.yPos = y * size;
         this.size = size;
         this.state = state;
         this.newState = 0;
         this.neighbourCount = 0;
-        this.age = 0;
+        this.overpopulationCount = 3;
+        this.underpopulationCount = 2;
+        this.reproductionCount = 3;
     }
 
     update() {
@@ -303,19 +264,15 @@ class Cell {
             }
         }
         if (this.state === 1) {
-            if (this.neighbourCount > 3) {
+            if (this.neighbourCount > this.overpopulationCount) {
                 this.newState = 0;
-                this.age = 0;
-            } else if (this.neighbourCount < 2) {
+            } else if (this.neighbourCount < this.underpopulationCount) {
                 this.newState = 0;
-                this.age = 0;
             } else {
-                this.age++;
                 this.newState = 1;
             }
         } else {
-            if (this.neighbourCount === 3) {
-                this.age++;
+            if (this.neighbourCount === this.reproductionCount) {
                 this.newState = 1;
             }
         }
@@ -326,7 +283,6 @@ class Cell {
     }
 
     setInitialState(state) {
-        this.age = 0;
         this.state = state;
         this.newState = state;
     }
@@ -335,25 +291,13 @@ class Cell {
         stroke(color(100));
         strokeWeight(0.5);
         fill(this.getFillColor());
-        rect(this.xPos, this.yPos, this.xPos + this.size, this.yPos + this.size);
-        //const label = `${this.neighbourCount}-${this.state}`;
-        //textAlign(CENTER);
-        //let textColor = this.state == 1 ? color(bgColor) : color(0);
-        //noStroke();
-        //fill(textColor);
-        //text(label, this.xPos + this.size / 2, this.yPos + this.size / 2);
+        let xPos = this.x * this.size;
+        let yPos = this.y * this.size;
+        rect(xPos, yPos, xPos + this.size, yPos + this.size);
     }
 
     getFillColor() {
         let fillColor =  this.state === 1 ? color(0) : color(bgColor);
-        // if (this.state === 1 && this.age === 0) {
-        //     fillColor = color(0, 160, 0);
-        // } else {
-        //     fillColor = color(160, 0, 0);
-        // }
-        // if (this.state === 0) {
-        //     fillColor = color(bgColor);
-        // }
         return fillColor;
     }
 }

@@ -3,6 +3,19 @@ html, body {
   padding: 0;
 }
 
+body {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
 canvas {
   display: block;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  width: 100px;
+  height: 100vh;
 }
