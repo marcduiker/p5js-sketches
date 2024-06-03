@@ -420,13 +420,13 @@ const RISOCOLORS = [
         newPixel = out.pixels[i] < 129 ? threshold : 255;
         err = Math.floor((out.pixels[i] - newPixel) / 8);
         out.pixels[i] = newPixel;
-  
-        out.pixels[i       + 4 ] += err;
-        out.pixels[i       + 8 ] += err;
-        out.pixels[i + 4*w - 4 ] += err;
-        out.pixels[i + 4*w     ] += err;
-        out.pixels[i + 4*w + 4 ] += err;
-        out.pixels[i + 8*w     ] += err;
+        const scaleFactor = 4;
+        out.pixels[i       + scaleFactor ] += err;
+        out.pixels[i       + scaleFactor*2 ] += err;
+        out.pixels[i + scaleFactor*w - scaleFactor ] += err;
+        out.pixels[i + scaleFactor*w     ] += err;
+        out.pixels[i + scaleFactor*w + scaleFactor ] += err;
+        out.pixels[i + scaleFactor*2*w     ] += err;
       }
   
       // Set g and b pixels equal to r
