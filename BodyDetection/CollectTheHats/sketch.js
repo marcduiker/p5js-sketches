@@ -6,10 +6,7 @@ let video;
 const desiredFrameRate = 15;
 let bodyPose;
 let poses = [];
-let daprImage;
 let connections;
-const imageW = 600;
-const imageH = 350;
 const minWidth = 1080;
 const desiredRatio = 16/9;
 const ml5Confidence = 0.3;
@@ -23,46 +20,94 @@ let oldrightEyeX = 0;
 let oldrightEyeY = 0;
 let oldMidX = 0;
 let oldMidY = 0;
+let hatData = [
+    { 
+        name: 'hats/hat_blue.png',
+        points: 1,
+        hatImage: null
+    },
+    {
+        name: 'hats/hat_green.png',
+        points: 2,
+        hatImage: null
+    },
+    {
+        name: 'hats/hat_purple.png',
+        points: 3,
+        hatImage: null
+    },
+    {
+        name: 'hats/hat_red.png',
+        points: 4,
+        hatImage: null
+    },
+    {
+        name: 'hats/hat_orange.png',
+        points: 5,
+        hatImage: null
+    },
+    {
+        name: 'hats/hat_yellow.png',
+        points: 6,
+        hatImage: null
+    }
+];
+let hatArray = [];
+let hatPerSecond = 0.5;
+let maxVisibleHats = 5;
+let score;
+let font;
+let isFinished = false;
 
 function preload() {
-    bodyPose = ml5.bodyPose(options = {enableSmoothing: true});
+    //bodyPose = ml5.bodyPose(options = {enableSmoothing: true});
+    font = loadFont('SpaceGrotesk-VariableFont_wght.ttf');
+    hatData.forEach(hat => {
+        let img = loadImage(hat.name)
+        hat.hatImage = img;
+    });
 }
 
 function setup() {
     frameRate(desiredFrameRate);
-    daprImage = loadImage('Dappy_600x350.png');
-    let constraints = {
-        video: {
-          mandatory: {
-            minWidth: minWidth,
-            aspectRatio: desiredRatio
-          },
-          optional: [{minFrameRate: desiredFrameRate}]
-        },
-        audio: false
-      };
-    video = createCapture(constraints);
+    // let constraints = {
+    //     video: {
+    //       mandatory: {
+    //         minWidth: minWidth,
+    //         aspectRatio: desiredRatio
+    //       },
+    //       optional: [{minFrameRate: desiredFrameRate}]
+    //     },
+    //     audio: false
+    //   };
+    // video = createCapture(constraints);
     reset();
+    
 }
 
 function reset() {
-    select('#status').show();
-    poses = null;
+    // select('#status').show();
+    // poses = null;
+    // scaledWidth = windowWidth;
+    // scaledHeight = scaledWidth / desiredRatio;
+    // console.log(scaledWidth, scaledHeight);
+    // video.size(scaledWidth, scaledHeight);
+    // video.hide();
+    // bodyPose.detectStart(video, gotPoses);
+    // connections = bodyPose.getSkeleton();
+    pixelDensity(1);
     scaledWidth = windowWidth;
-    scaledHeight = scaledWidth / desiredRatio;
-    console.log(scaledWidth, scaledHeight);
-    video.size(scaledWidth, scaledHeight);
-    video.hide();
-    bodyPose.detectStart(video, gotPoses);
-    connections = bodyPose.getSkeleton();
-
+    scaledHeight = windowHeight;
     let canv = createCanvas(scaledWidth, scaledHeight);
     canv.parent('sketch');
+    for (let i = 0; i < maxVisibleHats; i++) {
+        hatArray.push(new Hat());
+    }
+    score = new Score();
 }
 
 function windowResized() {
     reset();
-    //resizeCanvas(windowWidth, windowHeight);
 }
 
 function gotPoses(results) {
@@ -76,9 +121,20 @@ function modelReady() {
 }
 
 function draw() {
-    image(video, 0, 0, scaledWidth, scaledHeight);
-    drawLine();
-    drawText();
+    if (isFinished) {
+        noLoop();
+    }
+    background(100);
+    
+    //image(video, 0, 0, scaledWidth, scaledHeight);
+    hatArray.forEach(hat => {
+        hat.update();
+        hat.draw();
+    });
+    score.updateTime();
+    score.draw();
+    //drawLine();
+    //drawText();
 }
 
 function drawText() {
@@ -137,4 +193,120 @@ function drawLine() {
                 pop();
             }
         });
+}
+
+function mouseClicked() {
+    if (!isFinished) {
+        clickVector = createVector(mouseX, mouseY);
+        hatArray.forEach(hat => {
+            let distance = clickVector.dist(hat.vector);
+            if (distance < hat.hatData.hatImage.width * hat.scale / 2 && !hat.isCollected) {
+                hat.collect();
+                score.updateScore(hat.hatData.points, 1);
+            }
+        });
+    }
+}
+
+class Hat {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.hatData = random(hatData);
+        console.log(this.hatData);
+        this.scale = 1.5;
+        this.minX = this.hatData.hatImage.width * this.scale;
+        this.maxX = scaledWidth - this.hatData.hatImage.width * this.scale;
+        this.minSpeed = scaledHeight / 100;
+        this.maxSpeed = scaledHeight / 50;
+        this.startHeight = -this.hatData.hatImage.height * this.scale * random(1, 2);
+        this.vector = createVector(random(this.minX, this.maxX), this.startHeight);
+        this.speed = createVector(0, random(this.minSpeed, this.maxSpeed));
+        this.angle = random(-0.15, 0.15);
+        this.isCollected = false;
+        this.collectedTime = 0;
+    }
+
+    update() {
+        this.vector = this.vector.add(this.speed);
+        if (this.isCollected && millis() - this.collectedTime >= 1000) {
+            this.reset();
+        }
+        if (this.vector.y > scaledHeight + this.hatData.hatImage.height * this.scale) {
+            this.reset();
+        }
+    }
+
+    collect() {
+        this.scale = 1.7;
+        this.speed = createVector(0, 0);
+        this.isCollected = true;
+        this.collectedTime = millis();
+    }
+
+    draw() {
+        const scaledW = this.hatData.hatImage.width * this.scale;
+        const scaledH = this.hatData.hatImage.height * this.scale;
+        push();
+        translate(this.vector.x - scaledW / 2, this.vector.y - scaledH / 2);
+        rotate(this.angle);
+        image(this.hatData.hatImage, 0, 0, scaledW, scaledH);
+        pop();
+    }
+}
+
+class Score {
+    constructor() {
+        this.points = 0
+        this.hatsCollected = 0;
+        this.startTime = millis();
+        this.elapsedTime = 0;
+        this.timeLimit = 60;
+        this.countDown = this.timeLimit;
+        this.pointsX = 30;
+        this.pointsY = scaledHeight - 30;
+        this.timeX = scaledWidth - 150
+        this.timeY = scaledHeight - 30;
+        this.pointsMessage = `Score: ${this.points} points, ${this.hatsCollected} hats`;
+        this.timeMessage = `Time: ${this.countDown}`;
+    }
+
+    updateTime() {
+        const elapsedTime = millis() - this.startTime;
+        if (elapsedTime > 1000) {
+            this.elapsedTime += Math.floor(elapsedTime / 1000);
+            this.startTime = millis();
+            this.countDown = this.timeLimit - this.elapsedTime;
+        }
+        if (this.countDown <= 0) {
+            isFinished = true;
+        }
+        this.timeMessage = `Time: ${this.countDown}`;
+    }
+
+    updateScore(points, hats) {
+        this.points += points;
+        this.hatsCollected += hats;
+        this.pointsMessage = `Score: ${this.points} points, ${this.hatsCollected} hats`;
+    }
+
+    draw() {
+        noStroke();
+        textSize(32);
+        textFont(font);
+        textAlign(LEFT);
+        
+        fill(50);
+        let pad = 5;
+        let bboxPoints = font.textBounds(this.pointsMessage, this.pointsX, this.pointsY);
+        rect(bboxPoints.x - pad, bboxPoints.y - pad, bboxPoints.w + pad * 2, bboxPoints.h + pad * 2);
+        let bboxTime = font.textBounds(this.timeMessage, this.timeX, this.timeY);
+        rect(bboxTime.x - pad, bboxTime.y - pad, bboxTime.w + pad * 2, bboxTime.h + pad * 2);
+        
+        fill(255);
+        text(this.pointsMessage, this.pointsX, this.pointsY);
+        text(this.timeMessage, this.timeX, this.timeY);
+    }
 }
