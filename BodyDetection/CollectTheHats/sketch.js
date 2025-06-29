@@ -22,34 +22,46 @@ let oldMidX = 0;
 let oldMidY = 0;
 let hatData = [
     { 
-        name: 'hats/hat_blue.png',
+        name: 'images/hat_blue.png',
+        pointName: 'images/blue_1.png',
         points: 1,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     },
     {
-        name: 'hats/hat_green.png',
+        name: 'images/hat_green.png',
+        pointName: 'images/green_2.png',
         points: 2,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     },
     {
-        name: 'hats/hat_purple.png',
+        name: 'images/hat_purple.png',
+        pointName: 'images/purple_3.png',
         points: 3,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     },
     {
-        name: 'hats/hat_red.png',
+        name: 'images/hat_red.png',
+        pointName: 'images/red_4.png',
         points: 4,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     },
     {
-        name: 'hats/hat_orange.png',
+        name: 'images/hat_orange.png',
+        pointName: 'images/orange_5.png',
         points: 5,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     },
     {
-        name: 'hats/hat_yellow.png',
+        name: 'images/hat_yellow.png',
+        pointName: 'images/yellow_6.png',
         points: 6,
-        hatImage: null
+        hatImage: null,
+        pointImage: null
     }
 ];
 let hatArray = [];
@@ -63,8 +75,10 @@ function preload() {
     //bodyPose = ml5.bodyPose(options = {enableSmoothing: true});
     font = loadFont('SpaceGrotesk-VariableFont_wght.ttf');
     hatData.forEach(hat => {
-        let img = loadImage(hat.name)
-        hat.hatImage = img;
+        let hatImg = loadImage(hat.name)
+        hat.hatImage = hatImg;
+        let pointImg = loadImage(hat.pointName);
+        hat.pointImage = pointImg;
     });
 }
 
@@ -215,13 +229,14 @@ class Hat {
 
     reset() {
         this.hatData = random(hatData);
+        this.image = this.hatData.hatImage;
         console.log(this.hatData);
         this.scale = 1.5;
-        this.minX = this.hatData.hatImage.width * this.scale;
-        this.maxX = scaledWidth - this.hatData.hatImage.width * this.scale;
+        this.minX = this.image.width * this.scale;
+        this.maxX = scaledWidth - this.image.width * this.scale;
         this.minSpeed = scaledHeight / 100;
         this.maxSpeed = scaledHeight / 50;
-        this.startHeight = -this.hatData.hatImage.height * this.scale * random(1, 2);
+        this.startHeight = -this.image.height * this.scale * random(1, 2);
         this.vector = createVector(random(this.minX, this.maxX), this.startHeight);
         this.speed = createVector(0, random(this.minSpeed, this.maxSpeed));
         this.angle = random(-0.15, 0.15);
@@ -231,10 +246,10 @@ class Hat {
 
     update() {
         this.vector = this.vector.add(this.speed);
-        if (this.isCollected && millis() - this.collectedTime >= 1000) {
+        if (this.isCollected && millis() - this.collectedTime >= 700) {
             this.reset();
         }
-        if (this.vector.y > scaledHeight + this.hatData.hatImage.height * this.scale) {
+        if (this.vector.y > scaledHeight + this.image.height * this.scale) {
             this.reset();
         }
     }
@@ -243,16 +258,17 @@ class Hat {
         this.scale = 1.7;
         this.speed = createVector(0, 0);
         this.isCollected = true;
+        this.image = this.hatData.pointImage;
         this.collectedTime = millis();
     }
 
     draw() {
-        const scaledW = this.hatData.hatImage.width * this.scale;
-        const scaledH = this.hatData.hatImage.height * this.scale;
+        const scaledW = this.image.width * this.scale;
+        const scaledH = this.image.height * this.scale;
         push();
         translate(this.vector.x - scaledW / 2, this.vector.y - scaledH / 2);
         rotate(this.angle);
-        image(this.hatData.hatImage, 0, 0, scaledW, scaledH);
+        image(this.image, 0, 0, scaledW, scaledH);
         pop();
     }
 }
