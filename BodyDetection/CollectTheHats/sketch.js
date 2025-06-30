@@ -12,8 +12,6 @@ const desiredRatio = 16/9;
 const ml5Confidence = 0.3;
 let scaledWidth;
 let scaledHeight;
-let ratio;
-const ratios = [1, 4/3, 3/2, 16/9];
 let oldleftEyeX = 0;
 let oldleftEyeY = 0;
 let oldrightEyeX = 0;
@@ -84,17 +82,17 @@ function preload() {
 
 function setup() {
     frameRate(desiredFrameRate);
-    // let constraints = {
-    //     video: {
-    //       mandatory: {
-    //         minWidth: minWidth,
-    //         aspectRatio: desiredRatio
-    //       },
-    //       optional: [{minFrameRate: desiredFrameRate}]
-    //     },
-    //     audio: false
-    //   };
-    // video = createCapture(constraints);
+    let constraints = {
+        video: {
+          mandatory: {
+            minWidth: minWidth,
+            aspectRatio: desiredRatio
+          },
+          optional: [{minFrameRate: desiredFrameRate}]
+        },
+        audio: false
+      };
+    video = createCapture(constraints);
     reset();
     
 }
@@ -102,22 +100,23 @@ function setup() {
 function reset() {
     // select('#status').show();
     // poses = null;
-    // scaledWidth = windowWidth;
-    // scaledHeight = scaledWidth / desiredRatio;
+     scaledWidth = windowWidth;
+     scaledHeight = scaledWidth / desiredRatio;
     // console.log(scaledWidth, scaledHeight);
-    // video.size(scaledWidth, scaledHeight);
-    // video.hide();
+    video.size(scaledWidth, scaledHeight);
+    video.hide();
     // bodyPose.detectStart(video, gotPoses);
     // connections = bodyPose.getSkeleton();
     pixelDensity(1);
-    scaledWidth = windowWidth;
-    scaledHeight = windowHeight;
+    //scaledWidth = windowWidth;
+    //scaledHeight = windowHeight;
     let canv = createCanvas(scaledWidth, scaledHeight);
     canv.parent('sketch');
+    score = new Score();
+
     for (let i = 0; i < maxVisibleHats; i++) {
         hatArray.push(new Hat());
     }
-    score = new Score();
 }
 
 function windowResized() {
@@ -136,11 +135,12 @@ function modelReady() {
 
 function draw() {
     if (isFinished) {
+        saveImage();
         noLoop();
     }
     background(100);
     
-    //image(video, 0, 0, scaledWidth, scaledHeight);
+    image(video, 0, 0, scaledWidth, scaledHeight);
     hatArray.forEach(hat => {
         hat.update();
         hat.draw();
@@ -222,6 +222,11 @@ function mouseClicked() {
     }
 }
 
+function saveImage() {
+    let currentDate = new Date();
+    saveCanvas(`${currentDate.toISOString().replace(/:/g, '-')}-collect-the-hats`, 'jpg');
+}
+
 class Hat {
     constructor() {
         this.reset();
@@ -230,19 +235,45 @@ class Hat {
     reset() {
         this.chooseHat();
         this.image = this.hatData.hatImage;
-        //console.log(this.hatData);
         this.scale = 1.5;
         this.minX = this.image.width * this.scale;
         this.maxX = scaledWidth - this.image.width * this.scale;
-        this.startHeight = -this.image.height * this.scale * random(1, 2);
-        this.vector = createVector(random(this.minX, this.maxX), this.startHeight);
-        this.minSpeed = scaledHeight / 100;
-        this.maxSpeed = scaledHeight / 50;
+        this.startHeight = -this.image.height * this.scale * random(1, 3);
+        let newX = this.setNewX();
+        this.vector = createVector(newX, this.startHeight);
+        this.minSpeed = scaledHeight / 200;
+        this.maxSpeed = scaledHeight / 100;
         let mappedSpeed = map(this.hatData.points, 1, 6, this.minSpeed, this.maxSpeed);
-        this.speed = createVector(0, mappedSpeed);
+        let speedMult = map(score.countDown, score.timeLimit, 0, 1, 5);
+        this.speed = createVector(0, mappedSpeed * speedMult);
         this.angle = random(-0.15, 0.15);
         this.isCollected = false;
         this.collectedTime = 0;
+    }
+
+    setNewX() {
+        const maxIterations = 5;
+        const minDistance = this.image.width * this.scale;
+        let smallestDistance = scaledWidth;
+        let newX;
+        for (let i = 0; i < maxIterations; i++) {
+            newX = random(this.minX, this.maxX);
+            hatArray.forEach(hat => {
+                let hatDistance = abs(newX - hat.getX());
+                //console.log(newX, hat.getX(), hatDistance, minDistance);
+                if (hat !== this && hatDistance < smallestDistance) {
+                    smallestDistance = hatDistance;
+                }
+            });
+            if (smallestDistance > minDistance) {
+                break;
+            }
+        }
+        return newX; // Fallback value
+    }
+
+    getX() {
+        return this.vector.x;
     }
 
     chooseHat() {
@@ -262,7 +293,7 @@ class Hat {
     }
 
     collect() {
-        this.scale = 1.7;
+        this.scale = 1.5;
         this.speed = createVector(0, 0);
         this.isCollected = true;
         this.image = this.hatData.pointImage;
@@ -321,14 +352,17 @@ class Score {
         textFont(font);
         textAlign(LEFT);
         
-        fill(50);
+        fill('#ffc825');
+        stroke(255);
+        strokeWeight(5);
         let pad = 5;
         let bboxPoints = font.textBounds(this.pointsMessage, this.pointsX, this.pointsY);
-        rect(bboxPoints.x - pad, bboxPoints.y - pad, bboxPoints.w + pad * 2, bboxPoints.h + pad * 2);
+        rect(bboxPoints.x - pad, bboxPoints.y - pad*1.5, bboxPoints.w + pad * 3, bboxPoints.h + pad * 2.5);
         let bboxTime = font.textBounds(this.timeMessage, this.timeX, this.timeY);
-        rect(bboxTime.x - pad, bboxTime.y - pad, bboxTime.w + pad * 2, bboxTime.h + pad * 2);
+        rect(bboxTime.x - pad, bboxTime.y - pad*1.5, bboxTime.w + pad * 3, bboxTime.h + pad * 2.5);
         
-        fill(255);
+        fill(0);
+        noStroke();
         text(this.pointsMessage, this.pointsX, this.pointsY);
         text(this.timeMessage, this.timeX, this.timeY);
     }
