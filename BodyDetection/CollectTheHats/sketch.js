@@ -228,20 +228,27 @@ class Hat {
     }
 
     reset() {
-        this.hatData = random(hatData);
+        this.chooseHat();
         this.image = this.hatData.hatImage;
-        console.log(this.hatData);
+        //console.log(this.hatData);
         this.scale = 1.5;
         this.minX = this.image.width * this.scale;
         this.maxX = scaledWidth - this.image.width * this.scale;
-        this.minSpeed = scaledHeight / 100;
-        this.maxSpeed = scaledHeight / 50;
         this.startHeight = -this.image.height * this.scale * random(1, 2);
         this.vector = createVector(random(this.minX, this.maxX), this.startHeight);
-        this.speed = createVector(0, random(this.minSpeed, this.maxSpeed));
+        this.minSpeed = scaledHeight / 100;
+        this.maxSpeed = scaledHeight / 50;
+        let mappedSpeed = map(this.hatData.points, 1, 6, this.minSpeed, this.maxSpeed);
+        this.speed = createVector(0, mappedSpeed);
         this.angle = random(-0.15, 0.15);
         this.isCollected = false;
         this.collectedTime = 0;
+    }
+
+    chooseHat() {
+        let indices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5];
+        let rndIndex = random(indices);
+        this.hatData = hatData[rndIndex];
     }
 
     update() {
