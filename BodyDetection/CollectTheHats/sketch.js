@@ -9,7 +9,7 @@ let poses = [];
 let connections;
 const minWidth = 1080;
 const desiredRatio = 16/9;
-const ml5Confidence = 0.3;
+const ml5Confidence = 0.1;
 let scaledWidth;
 let scaledHeight;
 let oldleftEyeX = 0;
@@ -70,7 +70,7 @@ let font;
 let isFinished = false;
 
 function preload() {
-    //bodyPose = ml5.bodyPose(options = {enableSmoothing: true});
+    bodyPose = ml5.bodyPose(options = {enableSmoothing: true, flipped: true });
     font = loadFont('SpaceGrotesk-VariableFont_wght.ttf');
     hatData.forEach(hat => {
         let hatImg = loadImage(hat.name)
@@ -90,6 +90,7 @@ function setup() {
           },
           optional: [{minFrameRate: desiredFrameRate}]
         },
+        flipped:true,
         audio: false
       };
     video = createCapture(constraints);
@@ -99,17 +100,14 @@ function setup() {
 
 function reset() {
     // select('#status').show();
-    // poses = null;
-     scaledWidth = windowWidth;
-     scaledHeight = scaledWidth / desiredRatio;
-    // console.log(scaledWidth, scaledHeight);
+    poses = null;
+    scaledWidth = windowWidth;
+    scaledHeight = scaledWidth / desiredRatio;
     video.size(scaledWidth, scaledHeight);
     video.hide();
-    // bodyPose.detectStart(video, gotPoses);
-    // connections = bodyPose.getSkeleton();
+    bodyPose.detectStart(video, gotPoses);
+    connections = bodyPose.getSkeleton();
     pixelDensity(1);
-    //scaledWidth = windowWidth;
-    //scaledHeight = windowHeight;
     let canv = createCanvas(scaledWidth, scaledHeight);
     canv.parent('sketch');
     score = new Score();
@@ -130,7 +128,7 @@ function gotPoses(results) {
   }
 
 function modelReady() {
-    select('#status').hide();
+    //select('#status').hide();
 }
 
 function draw() {
@@ -139,7 +137,6 @@ function draw() {
         noLoop();
     }
     background(100);
-    
     image(video, 0, 0, scaledWidth, scaledHeight);
     hatArray.forEach(hat => {
         hat.update();
@@ -147,7 +144,7 @@ function draw() {
     });
     score.updateTime();
     score.draw();
-    //drawLine();
+    drawLine();
     //drawText();
 }
 
@@ -167,43 +164,37 @@ function drawLine() {
             if (pose.left_eye.confidence > ml5Confidence && pose.right_eye.confidence > ml5Confidence) {
                 let leftEyeX = pose.left_eye.x;
                 let leftEyeY = pose.left_eye.y;
-                //ellipse(leftEyeX, leftEyeY, 10, 10);
 
                 let rightEyeX = pose.right_eye.x;
                 let rightEyeY = pose.right_eye.y;
-                //ellipse(rightEyeX, rightEyeY, 10, 10);
 
                 const midX = rightEyeX + (leftEyeX - rightEyeX) / 2;
                 const midY = rightEyeY + (leftEyeY - rightEyeY) / 2;
 
-                let threshold = 15;
-                if (Math.abs(midX - oldMidX) > threshold || Math.abs(midY - oldMidY) > threshold) {
-                    eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
-                    oldleftEyeX = leftEyeX;
-                    oldleftEyeY = leftEyeY;
-                    oldrightEyeX = rightEyeX;
-                    oldrightEyeY = rightEyeY;
-                    oldMidX = midX;
-                    oldMidY = midY;
-                } else {
-                    // reuse old values
-                    eyeDist = dist(oldleftEyeX, oldleftEyeY, oldrightEyeX, oldrightEyeY);
-                    leftEyeX = oldleftEyeX;
-                    leftEyeY = oldleftEyeY;
-                    rightEyeX = oldrightEyeX;
-                    rightEyeY = oldrightEyeY;
-                }
-                const minEyeDist = scaledWidth/100;
-                const maxEyeDist = scaledWidth/10;
-                const offsetH = map(eyeDist, minEyeDist, maxEyeDist, 1.2, 1.5);
-                const scaledW = eyeDist * 3.5;
-                const scaledH = eyeDist * 3.5 * imageH / imageW;
+                eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
+                // let threshold = 15;
+                // if (Math.abs(midX - oldMidX) > threshold || Math.abs(midY - oldMidY) > threshold) {
+                //     eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
+                //     oldleftEyeX = leftEyeX;
+                //     oldleftEyeY = leftEyeY;
+                //     oldrightEyeX = rightEyeX;
+                //     oldrightEyeY = rightEyeY;
+                //     oldMidX = midX;
+                //     oldMidY = midY;
+                // } else {
+                //     // reuse old values
+                //     eyeDist = dist(oldleftEyeX, oldleftEyeY, oldrightEyeX, oldrightEyeY);
+                //     leftEyeX = oldleftEyeX;
+                //     leftEyeY = oldleftEyeY;
+                //     rightEyeX = oldrightEyeX;
+                //     rightEyeY = oldrightEyeY;
+                // }
 
                 push();
                 translate(midX, midY);
-                const angle = atan2(leftEyeY - rightEyeY, leftEyeX - rightEyeX);
-                rotate(angle);
-                image(daprImage, -scaledW / 2, -scaledH * offsetH, scaledW, scaledH);
+                noFill();
+                stroke('#ffc825');
+                circle(0, 0, eyeDist * 3);
                 pop();
             }
         });
@@ -252,7 +243,7 @@ class Hat {
     }
 
     setNewX() {
-        const maxIterations = 10;
+        const maxIterations = 7;
         const minDistance = this.image.width;
         let newX;
         for (let i = 0; i < maxIterations; i++) {
