@@ -252,11 +252,11 @@ class Hat {
     }
 
     setNewX() {
-        const maxIterations = 5;
-        const minDistance = this.image.width * this.scale;
-        let smallestDistance = scaledWidth;
+        const maxIterations = 10;
+        const minDistance = this.image.width;
         let newX;
         for (let i = 0; i < maxIterations; i++) {
+            let smallestDistance = scaledWidth;
             newX = random(this.minX, this.maxX);
             hatArray.forEach(hat => {
                 let hatDistance = abs(newX - hat.getX());
