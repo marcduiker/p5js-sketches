@@ -5,6 +5,7 @@
 let video;
 const desiredFrameRate = 15;
 let bodyPose;
+let head;
 let poses = [];
 let connections;
 const minWidth = 1080;
@@ -111,6 +112,7 @@ function reset() {
     let canv = createCanvas(scaledWidth, scaledHeight);
     canv.parent('sketch');
     score = new Score();
+    head = new Head();
 
     for (let i = 0; i < maxVisibleHats; i++) {
         hatArray.push(new Hat());
@@ -139,12 +141,12 @@ function draw() {
     background(100);
     image(video, 0, 0, scaledWidth, scaledHeight);
     hatArray.forEach(hat => {
-        hat.update();
+        hat.update(head);
         hat.draw();
     });
     score.updateTime();
     score.draw();
-    drawLine();
+    drawPose();
     //drawText();
 }
 
@@ -157,7 +159,7 @@ function drawText() {
     text('Dapr: APIs for Building Secure and Reliable Microservices | dapr.io', 10, height - 10);
 }
 
-function drawLine() {
+function drawPose() {
     if (poses == null) return;
     poses.forEach(
         pose => {
@@ -191,10 +193,8 @@ function drawLine() {
                 // }
 
                 push();
-                translate(midX, midY);
-                noFill();
-                stroke('#ffc825');
-                circle(0, 0, eyeDist * 3);
+                head.update(midX, midY, eyeDist);
+                head.draw();
                 pop();
             }
         });
@@ -216,6 +216,29 @@ function mouseClicked() {
 function saveImage() {
     let currentDate = new Date();
     saveCanvas(`${currentDate.toISOString().replace(/:/g, '-')}-collect-the-hats`, 'jpg');
+}
+
+class Head {
+    constructor() {
+        this.x = null;
+        this.y = null;
+        this.rScaling = 3; 
+    }
+
+    update(midX, midY, eyeDistance) {
+        this.x = midX;
+        this.y = midY;
+        this.radius = eyeDistance * this.rScaling;
+    }
+
+    draw() {
+        if (this.x !== null && this.y !== null) {
+            noFill();
+            stroke('#ffc825');
+            strokeWeight(2);
+            circle(this.x, this.y, this.radius);
+        }
+    }
 }
 
 class Hat {
@@ -273,7 +296,7 @@ class Hat {
         this.hatData = hatData[rndIndex];
     }
 
-    update() {
+    update(head) {
         this.vector = this.vector.add(this.speed);
         if (this.isCollected && millis() - this.collectedTime >= 700) {
             this.reset();
@@ -281,6 +304,32 @@ class Hat {
         if (this.vector.y > scaledHeight + this.image.height * this.scale) {
             this.reset();
         }
+
+        if (this.isIntersect(head)) {
+            this.collect();
+            score.updateScore(this.hatData.points, 1);
+        }
+    }
+
+    isIntersect(head) {
+        if (this.isCollected) return false;
+        let hatWidth = this.hatData.hatImage.width * this.scale;
+        let hatHeight = this.hatData.hatImage.height * this.scale;
+        let headRadius = head.radius / 2; // Use half radius for better collision detection
+        
+        let rectLeft = this.vector.x - hatWidth / 2;
+        let rectRight = this.vector.x + hatWidth / 2;
+        let rectTop = this.vector.y - hatHeight / 2;
+        let rectBottom = this.vector.y + hatHeight / 2;
+        
+        let closestX = constrain(head.x, rectLeft, rectRight);
+        let closestY = constrain(head.y, rectTop, rectBottom);
+        
+        let distanceX = head.x - closestX;
+        let distanceY = head.y - closestY;
+        let distanceSquared = distanceX * distanceX + distanceY * distanceY;
+        
+        return distanceSquared <= (headRadius * headRadius);
     }
 
     collect() {
