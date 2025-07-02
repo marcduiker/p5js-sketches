@@ -70,6 +70,8 @@ let score;
 let font;
 let isFinished = false;
 let isModelReady = false;
+let isStart = false;
+let countDown;
 
 function preload() {
     bodyPose = ml5.bodyPose(options = {enableSmoothing: true, flipped: true });
@@ -112,6 +114,7 @@ function reset() {
     pixelDensity(1);
     let canv = createCanvas(scaledWidth, scaledHeight);
     canv.parent('sketch');
+    countDown = new CountDown();
     score = new Score();
     head = new Head();
 
@@ -138,24 +141,20 @@ function draw() {
     background(100);
     image(video, 0, 0, scaledWidth, scaledHeight);
     if (isModelReady) {
-        hatArray.forEach(hat => {
-            hat.update(head);
-            hat.draw();
-        });
-        score.updateTime();
-        score.draw();
+        if (isStart) {
+            hatArray.forEach(hat => {
+                hat.update(head);
+                hat.draw();
+            });
+            score.updateTime();
+            score.draw();
+        }
+        else {
+            countDown.update();
+            countDown.draw();
+        }
         drawPose();
-        //drawText();
     }
-}
-
-function drawText() {
-    fill(255);
-    noStroke();
-    textFont('Space Grotesk');
-    textSize(18);
-    textAlign(LEFT, BOTTOM);
-    text('Dapr: APIs for Building Secure and Reliable Microservices | dapr.io', 10, height - 10);
 }
 
 function drawPose() {
@@ -350,6 +349,58 @@ class Hat {
     }
 }
 
+class CountDown {
+    constructor() {
+        this.limit = 5;
+        this.startTime = millis();
+        this.x = scaledWidth / 2;
+        this.y = scaledHeight / 2;
+        this.message = 'Get ready to catch the hats with your head!';
+    }
+
+    update() {
+        const elapsedTime = millis() - this.startTime;
+        if (elapsedTime >= 1000) {
+            this.limit--;
+            this.startTime = millis();
+        }
+        if (this.limit <= 0) {
+            isStart = true;
+        }
+    }
+
+    draw() {
+        // Circle with countdown limit
+        noStroke();
+        textSize(100);
+        textFont(font);
+        textAlign(CENTER, CENTER);
+
+        fill('#ffc825');
+        noStroke(255);
+        strokeWeight(5);
+        circle(this.x, this.y, scaledWidth / 7);
+
+        fill(0);
+        noStroke();
+        
+        text(this.limit, this.x, this.y / 1.05);
+        
+        // Message
+        let pad = 5;
+        textSize(50);
+        let bbox = font.textBounds(this.message, this.x, this.y / 3);
+        fill('#ffc825');
+        stroke(255);
+        strokeWeight(5);
+        rect(bbox.x - pad * 2, bbox.y - pad * 1.5, bbox.w + pad * 5, bbox.h + pad * 2.5);
+        
+        fill(0);
+        noStroke();
+        text(this.message, this.x, this.y / 3);
+    }
+}
+
 class Score {
     constructor() {
         this.points = 0
@@ -359,9 +410,9 @@ class Score {
         this.timeLimit = 60;
         this.countDown = this.timeLimit;
         this.pointsX = 30;
-        this.pointsY = scaledHeight - 30;
+        this.pointsY = scaledHeight - 40;
         this.timeX = scaledWidth - 150
-        this.timeY = scaledHeight - 30;
+        this.timeY = scaledHeight - 40;
         this.pointsMessage = `Score: ${this.points} points, ${this.hatsCollected} hats`;
         this.timeMessage = `Time: ${this.countDown}`;
     }
@@ -389,16 +440,16 @@ class Score {
         noStroke();
         textSize(32);
         textFont(font);
-        textAlign(LEFT);
+        textAlign(LEFT, CENTER);
         
         fill('#ffc825');
         stroke(255);
         strokeWeight(5);
         let pad = 5;
         let bboxPoints = font.textBounds(this.pointsMessage, this.pointsX, this.pointsY);
-        rect(bboxPoints.x - pad, bboxPoints.y - pad*1.5, bboxPoints.w + pad * 3, bboxPoints.h + pad * 2.5);
+        rect(bboxPoints.x - pad, bboxPoints.y - pad * 1.5, bboxPoints.w + pad * 3, bboxPoints.h + pad * 2.5);
         let bboxTime = font.textBounds(this.timeMessage, this.timeX, this.timeY);
-        rect(bboxTime.x - pad, bboxTime.y - pad*1.5, bboxTime.w + pad * 3, bboxTime.h + pad * 2.5);
+        rect(bboxTime.x - pad, bboxTime.y - pad * 1.5, bboxTime.w + pad * 3, bboxTime.h + pad * 2.5);
         
         fill(0);
         noStroke();
