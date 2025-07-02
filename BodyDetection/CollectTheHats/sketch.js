@@ -244,8 +244,6 @@ class Head {
     update(midX, midY, eyeDistance, headTilt) {
         this.x = midX;
         this.y = midY;
-        this.leftEyeX = leftEyeX;
-        this.leftEyeY = leftEyeY;
         this.headTilt = headTilt;
         this.radius = eyeDistance * this.rScaling;
         if (isFinished) {
