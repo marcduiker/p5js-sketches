@@ -68,9 +68,9 @@ let hatPerSecond = 0.5;
 let maxVisibleHats = 5;
 let score;
 let font;
-let isFinished = false;
-let isModelReady = false;
-let isStart = false;
+let isFinished;
+let isModelReady;
+let isStart;
 let countDown;
 
 function preload() {
@@ -99,11 +99,13 @@ function setup() {
       };
     video = createCapture(constraints);
     reset();
-    
 }
 
 function reset() {
     // select('#status').show();
+    isFinished = false;
+    isModelReady = false;
+    isStart = false;
     poses = null;
     scaledWidth = windowWidth;
     scaledHeight = scaledWidth / desiredRatio;
@@ -117,7 +119,7 @@ function reset() {
     countDown = new CountDown();
     score = new Score();
     head = new Head();
-
+    hatArray = [];
     for (let i = 0; i < maxVisibleHats; i++) {
         hatArray.push(new Hat());
     }
@@ -208,6 +210,15 @@ function mouseClicked() {
                 score.updateScore(hat.hatData.points, 1);
             }
         });
+    }
+}
+
+function keyPressed() {
+    if (key === 'r' || key === 'R') {
+        preload();
+        setup();
+    } else if (key === 's' || key === 'S') {
+        saveImage();
     }
 }
 
