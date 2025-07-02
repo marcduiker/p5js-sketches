@@ -72,10 +72,12 @@ let isFinished;
 let isModelReady;
 let isStart;
 let countDown;
+let glassesImage;
 
 function preload() {
     bodyPose = ml5.bodyPose(options = {enableSmoothing: true, flipped: true });
     font = loadFont('SpaceGrotesk-VariableFont_wght.ttf');
+    glassesImage = loadImage('images/glasses_border.png');
     hatData.forEach(hat => {
         let hatImg = loadImage(hat.name)
         hat.hatImage = hatImg;
@@ -136,10 +138,7 @@ function gotPoses(results) {
 }
 
 function draw() {
-    if (isFinished) {
-        saveImage();
-        noLoop();
-    }
+    
     background(100);
     image(video, 0, 0, scaledWidth, scaledHeight);
     if (isModelReady) {
@@ -157,6 +156,10 @@ function draw() {
         }
         drawPose();
     }
+    if (isFinished) {
+        saveImage();
+        noLoop();
+    }
 }
 
 function drawPose() {
@@ -173,7 +176,10 @@ function drawPose() {
                 const midX = rightEyeX + (leftEyeX - rightEyeX) / 2;
                 const midY = rightEyeY + (leftEyeY - rightEyeY) / 2;
 
-                eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
+                let eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
+                // Calculate the angle of the head tilt bassed on the eye positions
+                let headTilt = atan2(rightEyeY - leftEyeY, rightEyeX - leftEyeX);
+                 
                 // let threshold = 15;
                 // if (Math.abs(midX - oldMidX) > threshold || Math.abs(midY - oldMidY) > threshold) {
                 //     eyeDist = dist(leftEyeX, leftEyeY, rightEyeX, rightEyeY);
@@ -193,7 +199,7 @@ function drawPose() {
                 // }
 
                 push();
-                head.update(midX, midY, eyeDist);
+                head.update(midX, midY, eyeDist, headTilt);
                 head.draw();
                 pop();
             }
@@ -215,8 +221,7 @@ function mouseClicked() {
 
 function keyPressed() {
     if (key === 'r' || key === 'R') {
-        preload();
-        setup();
+        location.reload();
     } else if (key === 's' || key === 'S') {
         saveImage();
     }
@@ -231,13 +236,24 @@ class Head {
     constructor() {
         this.x = null;
         this.y = null;
-        this.rScaling = 3; 
+        this.rScaling = 3;
+        this.glassesScaling = 3;
+        this.glassesImage = glassesImage;
     }
 
-    update(midX, midY, eyeDistance) {
+    update(midX, midY, eyeDistance, headTilt) {
         this.x = midX;
         this.y = midY;
+        this.leftEyeX = leftEyeX;
+        this.leftEyeY = leftEyeY;
+        this.headTilt = headTilt;
         this.radius = eyeDistance * this.rScaling;
+        if (isFinished) {
+            this.glassesWidth = eyeDistance * this.glassesScaling;
+            this.glassesX = this.x - (this.glassesWidth) / 2;
+            this.glassesHeight = this.glassesWidth * this.glassesImage.height / this.glassesImage.width;
+            this.glassesY  = this.y - (this.glassesHeight) / 2;
+        }
     }
 
     draw() {
@@ -246,6 +262,14 @@ class Head {
             stroke('#ffc825');
             strokeWeight(2);
             circle(this.x, this.y, this.radius);
+
+            if (isFinished) {
+                push();
+                translate(this.glassesX, this.glassesY);
+                rotate(this.headTilt);
+                image(this.glassesImage, 0, 0, this.glassesWidth, this.glassesHeight);
+                pop();
+            }
         }
     }
 }
@@ -377,6 +401,7 @@ class CountDown {
         }
         if (this.limit <= 0) {
             isStart = true;
+            score.start();
         }
     }
 
@@ -416,9 +441,9 @@ class Score {
     constructor() {
         this.points = 0
         this.hatsCollected = 0;
-        this.startTime = millis();
+        this.startTime = null;
         this.elapsedTime = 0;
-        this.timeLimit = 60;
+        this.timeLimit = 30;
         this.countDown = this.timeLimit;
         this.pointsX = 30;
         this.pointsY = scaledHeight - 40;
@@ -427,8 +452,12 @@ class Score {
         this.pointsMessage = `Score: ${this.points} points, ${this.hatsCollected} hats`;
         this.timeMessage = `Time: ${this.countDown}`;
     }
+    start() {
+        this.startTime = millis();
+    }
 
     updateTime() {
+        if (this.startTime === null) return;
         const elapsedTime = millis() - this.startTime;
         if (elapsedTime > 1000) {
             this.elapsedTime += Math.floor(elapsedTime / 1000);
