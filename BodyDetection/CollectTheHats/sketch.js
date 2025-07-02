@@ -69,6 +69,7 @@ let maxVisibleHats = 5;
 let score;
 let font;
 let isFinished = false;
+let isModelReady = false;
 
 function preload() {
     bodyPose = ml5.bodyPose(options = {enableSmoothing: true, flipped: true });
@@ -126,11 +127,7 @@ function windowResized() {
 function gotPoses(results) {
     // Store the model's results in a global variable
     poses = results;
-    modelReady();
-  }
-
-function modelReady() {
-    //select('#status').hide();
+    isModelReady = true;
 }
 
 function draw() {
@@ -140,14 +137,16 @@ function draw() {
     }
     background(100);
     image(video, 0, 0, scaledWidth, scaledHeight);
-    hatArray.forEach(hat => {
-        hat.update(head);
-        hat.draw();
-    });
-    score.updateTime();
-    score.draw();
-    drawPose();
-    //drawText();
+    if (isModelReady) {
+        hatArray.forEach(hat => {
+            hat.update(head);
+            hat.draw();
+        });
+        score.updateTime();
+        score.draw();
+        drawPose();
+        //drawText();
+    }
 }
 
 function drawText() {
