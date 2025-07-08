@@ -43,22 +43,22 @@ let hatData = [
     },
     {
         name: 'images/hat_red.png',
-        pointName: 'images/red_4.png',
-        points: 4,
+        pointName: 'images/red_-2.png',
+        points: -2,
         hatImage: null,
         pointImage: null
     },
     {
         name: 'images/hat_orange.png',
-        pointName: 'images/orange_5.png',
-        points: 5,
+        pointName: 'images/orange_4.png',
+        points: 4,
         hatImage: null,
         pointImage: null
     },
     {
         name: 'images/hat_yellow.png',
-        pointName: 'images/yellow_6.png',
-        points: 6,
+        pointName: 'images/yellow_5.png',
+        points: 5,
         hatImage: null,
         pointImage: null
     }
@@ -288,7 +288,7 @@ class Hat {
         this.vector = createVector(newX, this.startHeight);
         this.minSpeed = scaledHeight / 200;
         this.maxSpeed = scaledHeight / 100;
-        let mappedSpeed = map(this.hatData.points, 1, 6, this.minSpeed, this.maxSpeed);
+        let mappedSpeed = map(abs(this.hatData.points), 1, 5, this.minSpeed, this.maxSpeed);
         let speedMult = map(score.countDown, score.timeLimit, 0, 1, 5);
         this.speed = createVector(0, mappedSpeed * speedMult);
         this.angle = random(-0.15, 0.15);
@@ -322,7 +322,7 @@ class Hat {
     }
 
     chooseHat() {
-        let indices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5];
+        let indices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 5];
         let rndIndex = random(indices);
         this.hatData = hatData[rndIndex];
     }
@@ -441,7 +441,7 @@ class Score {
         this.hatsCollected = 0;
         this.startTime = null;
         this.elapsedTime = 0;
-        this.timeLimit = 30;
+        this.timeLimit = 60;
         this.countDown = this.timeLimit;
         this.pointsX = 30;
         this.pointsY = scaledHeight - 40;
