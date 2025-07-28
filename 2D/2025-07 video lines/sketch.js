@@ -136,26 +136,38 @@ class PointPair {
         let maxX = Math.max(this.v1.x, this.v2.x);
         let minY = Math.min(this.v1.y, this.v2.y);
         let maxY = Math.max(this.v1.y, this.v2.y);
-        let dx = maxX - minX; // 7 - 2 = 5
-        let dy = maxY - minY; // 10 - 6 = 4
-        let slopeYX = dy / dx; // 4 / 5 = 0.8
-        let slopeXY = dx / dy; // 5 / 4 = 1.25
+        let dx = this.v1.x - this.v2.x;
+        let dy = this.v1.y - this.v2.y;
+        let slope = dy / dx;
 
         if (this.direction === 0 || this.direction === 1) {
           for (let x = minX; x <= maxX; x+=0.5) {
-            let y = slopeYX * (x - minX) + minY;
+            let yOffset = 0;
+            if (this.v1.y === minY) {
+              yOffset = minY;
+            } else {
+              yOffset = maxY;
+            }
+            let y = slope * (x - minX) + yOffset;
             let c = get(x, y);
             strokeWeight(1);
             stroke(c[0], c[1], c[2], c[3]);
             if (this.direction === 0) {
               line(x, y, x, 0);
-            } else if (this.direction === 1) {
+            }
+            else if (this.direction === 1) {
               line(x, y, x, scaledHeight);
             }
           }
         } else if (this.direction === 2 || this.direction === 3) {
           for (let y = minY; y <= maxY; y+=0.5) {
-            let x = slopeXY * (y - minY) + minX;
+            let xOffset = 0;
+            if (this.v1.x === minX) {
+              xOffset = minX;
+            } else {
+              xOffset = maxX;
+            }
+            let x = (y - minY) / slope + xOffset;
             let c = get(x, y);
             strokeWeight(1);
             stroke(c[0], c[1], c[2], c[3]);
@@ -167,37 +179,6 @@ class PointPair {
           }
         }
       }
-
-      // if (this.v1 && this.v2) {
-      //   let x1 = Math.floor(this.v1.x);
-      //   let y1 = Math.floor(this.v1.y);
-      //   let x2 = Math.floor(this.v2.x);
-      //   let y2 = Math.floor(this.v2.y);
-        
-      //   let dx = x2 - x1;
-      //   let dy = y2 - y1;
-      //   let steps = max(abs(dx), abs(dy));
-        
-      //   for (let i = 0; i <= steps; i++) {
-      //     let t = i / steps;
-      //     let x = Math.floor(x1 + t * dx);
-      //     let y = Math.floor(y1 + t * dy);
-          
-      //     if (x >= 0 && x < scaledWidth && y >= 0 && y < scaledHeight) {
-      //       let c = get(x, y);
-      //       strokeWeight(1);
-      //       stroke(c[0], c[1], c[2], c[3]);
-      //       if (this.direction === 0) {
-      //         line(x, y, x, 0);
-      //       } else if (this.direction === 1) {
-      //         line(x, y, x, scaledHeight);
-      //       } else if (this.direction === 2) {
-      //         line(x, y, 0, y);
-      //       } else if (this.direction === 3) {
-      //         line(x, y, scaledWidth, y);
-      //       } 
-      //     }
-      //}
     }
 }
 
