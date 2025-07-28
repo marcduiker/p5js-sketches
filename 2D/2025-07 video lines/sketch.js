@@ -196,7 +196,7 @@ function keyPressed() {
   } else if ((key === 'u' || key === 'U') && activePointPair.direction !== null) {
     activePointPair.doUpdatePixels = !activePointPair.doUpdatePixels;
   } else if (key === 's' || key === 'S') {
-    saveCanvas('screenshot', 'png');
+    saveCanvas('video-line-distortion', 'png');
   } else if (keyCode === UP_ARROW) {
     activePointPair.direction = 0; // Up
   } else if (keyCode === DOWN_ARROW) {
