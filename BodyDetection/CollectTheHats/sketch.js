@@ -283,7 +283,7 @@ class Hat {
         this.scale = 1.5;
         this.minX = this.image.width * this.scale;
         this.maxX = scaledWidth - this.image.width * this.scale;
-        this.startHeight = -this.image.height * this.scale * random(1, 3);
+        this.startHeight = -this.image.height * this.scale * random(1, 2);
         let newX = this.setNewX();
         this.vector = createVector(newX, this.startHeight);
         this.minSpeed = scaledHeight / 200;
