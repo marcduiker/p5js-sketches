@@ -143,7 +143,7 @@ class PointPair {
         if (this.direction === 0 || this.direction === 1) {
           for (let x = minX; x <= maxX; x+=0.5) {
             let yOffset = 0;
-            if (this.v1.y === minY) {
+            if (this.v1.y === minY && dy < 0) {
               yOffset = minY;
             } else {
               yOffset = maxY;
@@ -162,7 +162,7 @@ class PointPair {
         } else if (this.direction === 2 || this.direction === 3) {
           for (let y = minY; y <= maxY; y+=0.5) {
             let xOffset = 0;
-            if (this.v1.x === minX) {
+            if (this.v1.x === minX && dx < 0) {
               xOffset = minX;
             } else {
               xOffset = maxX;
