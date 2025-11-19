@@ -12,10 +12,12 @@ let noiseThreshold = 0.3;
 let env;
 let filter, noiseGen;
 let minSpeed, maxSpeed;
+let doRenderGrid;
 
 function setup() {
   setFrameRate(30);
   createCanvas(windowWidth, windowHeight);
+  doRenderGrid = false;
   init();
 }
 
@@ -23,12 +25,12 @@ function init() {
   noiseDetail(3, 0.5);
   minSpeed = 0.1;
   maxSpeed = 1;
-  env = new p5.Envelope(0.2, 0.3, 1.5, 0.15);
+  env = new p5.Envelope(0.2, 0.5, 1.5, 0.15);
   filter = new p5.BandPass();
   noiseGen = new p5.Noise();
   noiseGen.disconnect();
   noiseGen.connect(filter);
-  noiseGen.start();
+
   cells = [];
   if (windowWidth < windowHeight) {
     gridWidth = windowWidth * 0.75;
@@ -51,10 +53,12 @@ function init() {
 
 function draw() {
   background(10);
-  cells.forEach(cell => {
-    cell.update();
-    cell.draw();
-  });
+  if (doRenderGrid) {
+    cells.forEach(cell => {
+      cell.update();
+      cell.draw();
+    });
+  }
 }
 
 function windowResized() {
@@ -65,6 +69,19 @@ function windowResized() {
 function mouseMoved() {
   noiseThreshold = map(mouseX, 0, windowWidth, 0.1, 0.9);
   maxSpeed = map(mouseY, 0, windowHeight, 5, 0.1);
+}
+
+function keyPressed() {
+  if (key === 'r' || key === 'R') {
+    doRenderGrid = !doRenderGrid;
+  }
+
+  if (doRenderGrid) {
+      init();
+      noiseGen.start();
+  } else {
+      noiseGen.stop();
+  }
 }
 
 class Cell {
