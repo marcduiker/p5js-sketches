@@ -1,5 +1,5 @@
-let env, filter, noiseGen;
-let doRenderGrid;
+let env, filter1, filter2, noiseGen1, noiseGen2;
+let doPlay;
 let center;
 let w, h;
 let circleSize;
@@ -24,11 +24,12 @@ function setup() {
 }
 
 function init() {
+  console.log("init");
   cells = [];
   fps = 30;
-  noiseSeed(1);
+  //noiseSeed(1);
   frameRate(30);
-  doRenderGrid = false;
+  doPlay = false;
   minTrailTime = 0;
   maxTrailTime = 25;
   trailTime = 10;
@@ -38,11 +39,17 @@ function init() {
   minAngleIncrement = 0.0005;
   maxAngleIncrement = 0.02;
   angleIncrement = 0.15;
-  // env = new p5.Envelope(0.2, 0.5, 1.5, 0.15);
-  // filter = new p5.BandPass();
-  // noiseGen = new p5.Noise();
-  // noiseGen.disconnect();
-  // noiseGen.connect(filter);
+  env = new p5.Envelope(0.5, 0.4, 15, 0);
+  filter1 = new p5.BandPass();
+  filter2 = new p5.BandPass();
+  noiseGen1 = new p5.Noise();
+  noiseGen1.setType('white');
+  noiseGen1.disconnect();
+  noiseGen1.connect(filter1);
+  noiseGen2 = new p5.Noise();
+  noiseGen2.setType('white');
+  noiseGen2.disconnect();
+  noiseGen2.connect(filter2);
   cells.push(new Cell(windowWidth / 2, windowHeight / 2, circleSize, 2, 0.7));
   cells.push(new Cell(windowWidth / 2, windowHeight / 2, circleSize, 5, 0.7));
   cellIndices = cellIndicesCollection[0];
@@ -65,59 +72,71 @@ function updateCellIndices() {
 function draw() {
   trailTime = sin(frameCount / fps / 2) * maxTrailTime;
   background(10, trailTime);
-  cells.forEach(cell => {
-    cell.update();
-  });
+  
+  if (doPlay) {
+    cells.forEach(cell => {
+      cell.update();
+    });
 
-  doSwitch = floor(frameCount % (fps * random([4, 8, 16]))) === 0;
-  if (doSwitch) {
-    updateCellIndices();
-    console.log(`Switched to cells: ${cellA}, ${cellB}, ${cellC}, ${cellD}`);
+    doSwitch = frameCount === 0 || floor(frameCount % (fps * random([16, 16, 16]))) === 0;
+    if (doSwitch) {
+      background(10);
+      updateCellIndices();
+      cells[0].playSound();
+    }
+
+    let freq1 = map(cells[0].size, 0, circleSize, 1000, 10000);
+    filter1.freq(freq1);
+    filter1.res(random(20, 40));
+    filter2.freq(freq1 * 0.25);
+    filter2.res(random(10, 25));
+    noiseGen1.pan(sin(frameCount / fps / 2));
+    noiseGen2.pan(cos(frameCount / fps / 2));
+
+    // Move the entire sketch in a push/pop to be rotated around the center
+    push();
+    translate(windowWidth / 2, windowHeight / 2);
+    //rotate(sin(frameCount) / fps / 10);
+
+    // top left
+    push();
+    beginClip();
+    translate(-windowWidth / 2, -windowHeight / 2);
+    rect(0, 0, windowWidth / 2, windowHeight / 2);
+    endClip();
+    cells[cellA].draw();
+    pop();
+
+    // top right
+    push();
+    beginClip();
+    translate(-windowWidth / 2, -windowHeight / 2);
+    rect(windowWidth / 2, 0, windowWidth / 2, windowHeight / 2);
+    endClip();
+    cells[cellB].draw();
+    pop();
+
+    // bottom right
+    push();
+    beginClip();
+    translate(-windowWidth / 2, -windowHeight / 2);
+    rect(windowWidth / 2, windowHeight / 2, windowWidth / 2, windowHeight / 2);
+    endClip();
+    cells[cellC].draw();
+    pop();
+
+    // bottom left
+    push();
+    beginClip();
+    translate(-windowWidth / 2, -windowHeight / 2);
+    rect(0, windowHeight / 2, windowWidth / 2, windowHeight / 2);
+    endClip();
+    cells[cellD].draw();
+    pop();
+
+    // Get out of the main translate/rotate
+    pop();
   }
-
-  // Move the entire sketch in a push/pop to be rotated around the center
-  push();
-  translate(windowWidth / 2, windowHeight / 2);
-  //rotate(sin(frameCount) / fps / 20);
-
-  // top left
-  push();
-  beginClip();
-  translate(-windowWidth / 2, -windowHeight / 2);
-  rect(0, 0, windowWidth / 2, windowHeight / 2);
-  endClip();
-  cells[cellA].draw();
-  pop();
-
-  // top right
-  push();
-  beginClip();
-  translate(-windowWidth / 2, -windowHeight / 2);
-  rect(windowWidth / 2, 0, windowWidth / 2, windowHeight / 2);
-  endClip();
-  cells[cellB].draw();
-  pop();
-
-  // bottom right
-  push();
-  beginClip();
-  translate(-windowWidth / 2, -windowHeight / 2);
-  rect(windowWidth / 2, windowHeight / 2, windowWidth / 2, windowHeight / 2);
-  endClip();
-  cells[cellC].draw();
-  pop();
-
-   // bottom left
-  push();
-  beginClip();
-  translate(-windowWidth / 2, -windowHeight / 2);
-  rect(0, windowHeight / 2, windowWidth / 2, windowHeight / 2);
-  endClip();
-  cells[cellD].draw();
-  pop();
-
-  // Get out of the main translate/rotate
-  pop();
 }
 
 function windowResized() {
@@ -125,22 +144,20 @@ function windowResized() {
   init();
 }
 
-function mouseMoved() {
-  //trailTime = map(mouseY, windowHeight, 0, minTrailTime, maxTrailTime);
-  //angleIncrement = map(mouseX, 0, windowWidth, minAngleIncrement, maxAngleIncrement);
-}
-
 function keyPressed() {
-  // if (key === 'r' || key === 'R') {
-  //   doRenderGrid = !doRenderGrid;
-  // }
+  if (key === 'p' || key === 'P') {
+    doPlay = !doPlay;
+  }
 
-  // if (doRenderGrid) {
-  //     init();
-  //     noiseGen.start();
-  // } else {
-  //     noiseGen.stop();
-  // }
+  if (doPlay) {
+    noiseGen1.start();
+    noiseGen2.start();
+    env.play(noiseGen1);
+    env.play(noiseGen2);
+  } else {
+    noiseGen1.stop();
+    noiseGen2.stop();
+  }
 }
 
 class Cell {
@@ -174,14 +191,15 @@ class Cell {
   }
 
   playSound() {
-    filter.freq(random(200, 1000));
-    noiseGen.pan(sin(this.t/30));
-    filter.res(random(5, 50));
-    env.play(noiseGen);
+    let freq = map(this.size, 0, circleSize, 400, 5000);
+    filter1.freq(freq);
+    let res = map(noise(this.t), 0, 1, 10, 50);
+    filter1.res(res);
+    env.play(noiseGen1);
+    env.play(noiseGen2);
   }
 
   update() {
-    
     noiseDetail(this.noiseOctaves, this.noiseFalloff);
     this.size = noise(this.t) * circleSize;
     this.x = this.xi + cos(this.angle) * this.size;
@@ -200,7 +218,7 @@ class Cell {
     this.myt1 = this.my + sin(mtangentAngle1) * this.size;
     this.mxt2 = this.mx + cos(mtangentAngle2) * this.size;
     this.myt2 = this.my + sin(mtangentAngle2) * this.size;
-    this.angleIncrement= sin(this.t) * maxAngleIncrement;
+    this.angleIncrement = sin(this.t) * maxAngleIncrement;
     this.angle += this.angleIncrement;
     this.t += 0.01;
   }
