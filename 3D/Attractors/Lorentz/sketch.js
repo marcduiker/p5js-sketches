@@ -1,5 +1,10 @@
+/// Lorentz Attractor
+/// Marc Duiker
+/// https://marcduiker.dev
+/// Dec 2025
+
 let attractors;
-const maxAttractors = 8;
+const maxAttractors = 32;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -15,7 +20,7 @@ function setup() {
 function draw() {
   background(10);
   orbitControl();
-  scale(2);
+  scale(8);
   attractors.forEach(attractor => {
     attractor.update();
     attractor.draw();  
@@ -33,9 +38,9 @@ class Attractor {
     this.dx = 0;
     this.dy = 0;
     this.dz = 0;
-    this.dt = 0.01;
+    this.dt = 0.007;
     this.vectors = []
-    this.maxVectors = 500;
+    this.maxVectors = 100;
     this.prev = null;
     this.curr = null;
     
