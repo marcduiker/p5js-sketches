@@ -5,12 +5,17 @@
 
 let attractors;
 const maxAttractors = 32;
+let colors = dreamhaze8;
+let bgColor;
+let cam;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   frameRate(30);
+  cam = createCamera();
+  bgColor = colors[0];
   attractors = [];
-  const deltaStart = 0.1;
+  const deltaStart = 0.5;
   for (let i = 0; i < maxAttractors; i++) {
     let start = i * deltaStart + deltaStart;
     attractors.push(new Attractor(start, start, start));
@@ -18,13 +23,22 @@ function setup() {
 }
 
 function draw() {
-  background(10);
+  background(bgColor);
   orbitControl();
-  scale(8);
+  cam.setPosition(map(sin(frameCount * 0.01), -1, 1, -400, 400), map(cos(frameCount * 0.01), -1, 1, -200, 200), map(sin(frameCount * 0.02), -1, 1, 400, 700));
+  cam.lookAt(0, 0, 0);
+  setCamera(cam);
+  scale(6);
   attractors.forEach(attractor => {
     attractor.update();
     attractor.draw();  
   });
+}
+
+function keyPressed() {
+  if (key === 's') {
+    saveGif('lorentz-attractor', 15);
+  }
 }
 
 class Attractor {
@@ -32,15 +46,16 @@ class Attractor {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.color = colors[floor(random(1, colors.length))];
     this.sigma = 10; //10
     this.rho = 28; // 28
     this.beta = 8/3; // 8/3
     this.dx = 0;
     this.dy = 0;
     this.dz = 0;
-    this.dt = 0.007;
+    this.dt = 0.0075;
     this.vectors = []
-    this.maxVectors = 100;
+    this.maxVectors = 150;
     this.prev = null;
     this.curr = null;
     
@@ -63,15 +78,30 @@ class Attractor {
   }
   
   draw() {
-    strokeWeight(1);
-    
+    beginShape();
     for (let i = 1; i < this.vectors.length; i++) {
       let strokeAlpha = map(i, 1, this.vectors.length, 0, 255);
-      stroke(255, strokeAlpha);
-      this.prev = this.vectors[i-1];
+      strokeWeight(1);
+      this.prev = this.vectors[i - 1];
       this.curr = this.vectors[i];
-      point(this.curr.x, this.curr.y, this.curr.z);
-      //line(this.prev.x, this.prev.y, this.prev.z, this.curr.x, this.curr.y, this.curr.z)
+      
+      noFill();
+      stroke(this.applyAlphaToColor(this.color, strokeAlpha));
+      //line(this.prev.x, this.prev.y, this.prev.z, this.curr.x, this.curr.y, this.curr.z);
+      vertex(this.curr.x, this.curr.y, this.curr.z);
+      
     }
+    endShape();
+
+    strokeWeight(3);
+    stroke(255);
+    let endVector = this.vectors[this.vectors.length - 1];
+    point(endVector.x, endVector.y, endVector.z);
+  }
+
+  applyAlphaToColor(col, alpha) {
+    let c = color(col);
+    return color(red(c), green(c), blue(c), alpha);
   }
 }
+
