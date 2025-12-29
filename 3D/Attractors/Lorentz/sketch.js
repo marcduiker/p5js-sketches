@@ -25,7 +25,7 @@ function setup() {
 function draw() {
   background(bgColor);
   orbitControl();
-  cam.setPosition(map(sin(frameCount * 0.01), -1, 1, -400, 400), map(cos(frameCount * 0.01), -1, 1, -200, 200), map(sin(frameCount * 0.02), -1, 1, 400, 700));
+  cam.setPosition(map(sin(frameCount * 0.01), -1, 1, -400, 400), map(cos(frameCount * 0.01), -1, 1, -200, 200), map(sin(frameCount * 0.02), -1, 1, 300, 700));
   cam.lookAt(0, 0, 0);
   setCamera(cam);
   scale(6);
