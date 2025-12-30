@@ -122,7 +122,7 @@ class Message {
   update() {
     if (this.row === 0) {
       if (this.letters[this.letterIndex] === ' ') return;
-      if (floor(frameCount % (fps / 8)) === 0) {
+      if (floor(frameCount % (fps / 12)) === 0) {
         this.letters[this.letterIndex].update();
         this.letterIndex++;
         if (this.letterIndex >= this.letters.length) {
@@ -134,6 +134,15 @@ class Message {
   }
 
   draw() {
+    if (this.row === 0) {
+      for (let i = 0; i < this.letterIndex; i++) {
+        if (this.letters[i].letter === ' ') continue;
+        this.letters[i].draw();
+      }
+    }
+  }
+
+  olddraw() {
     if (this.row === 0) {
       this.letters.forEach(letterObj => {
         if (letterObj.letter === ' ') return;
@@ -165,6 +174,7 @@ class LetterObject {
   
   update() {
     this.init();
+
   }
   
   draw() {
