@@ -10,9 +10,9 @@ const maxFontSize = 48;
 const fps = 15;
 let bgColor;
 let fonts = [];
-let texts = [];
-let messages = [];
-let isComplete;
+const messageText = "social media is holding you ransom, they don't want your money, they want your attention";
+let message;
+let step;
 
 async function setup() {
   fonts.push(await loadFont('./assets/Arial.ttf'));
@@ -29,38 +29,19 @@ async function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(fps);
   bgColor = colors[0];
-  texts.push('01234 56789');
-  texts.push('987 6543210');
-  texts.push('.;!<(#$>?*.');
-  texts.forEach((msg, index) => {
-    messages.push(new Message(msg, index, texts.length - 1));
-  });
+  step = 0;
+  message = new Message(messageText);
 }
 
 function draw() {
   background(bgColor);
-  
-  messages.forEach(message => {
-    message.update();
-    message.draw();
-    if (message.isComplete) {
-      isComplete = message.isComplete;
-      return;
-    }
-  });
-  if (isComplete) {
-    messages.forEach(message => {
-      message.updateRow();
-    });
-    isComplete = false;
+  message.update(step);
+  message.draw(step);
+  if (frameCount % fps === 0) {
+    step++;
   }
-
-  // Determines when the final message has been shown
-  // and the messages should cycle from the beginning.
-  if (messages[messages.length-1].row === -1) {
-    messages.forEach(message => {
-      message.resetRow();
-    });
+  if (step >= message.length) {
+    step = 0;
   }
 }
 
@@ -72,113 +53,67 @@ function keyPressed() {
 }
 
 class Message {
-  constructor(message, index, maxIndex) {
-    this.word = message;
-    this.index = index;
-    this.maxIndex = maxIndex;
-    this.row = index;
+  constructor(message) {
+    this.message = message;
+    this.length = this.message.length;
     this.size = maxFontSize;
-    this.x = windowWidth / 2 - (this.word.length * this.size) / 2;
-    if (this.row === 0) {
-      this.initRow0();
-    }
+    this.init();
   }
 
-  initRow0() {
+  init() {
     this.isComplete = false;
-    this.y = windowHeight / 2;
     this.letterIndex = 0;
     this.letters = [];
     this.createLetters();
   }
 
-  resetRow() {
-    this.row = this.index;
-  }
-
   createLetters() {
-    for (let i = 0; i < this.word.length; i++) {
-      let letter = this.word.charAt(i);
-      let x = this.x + i * this.size * 1.1;
-      let y = this.y;
-      this.letters.push(new LetterObject(letter, x, y));
+    for (let i = 0; i < this.length; i++) {
+      let letter = this.message.charAt(i);
+      this.letters.push(new LetterObject(letter, i));
     }
   }
 
-  // Row numbers per iteration
-  // Iteration 1   2   3
-  //           ---------
-  //           0  -1  -2
-  //           1   0  -1
-  //           2   1   0
-  updateRow() {
-    this.row--;
-    this.isComplete = false;
-    if (this.row === 0) {
-      this.initRow0();
+  update(step) {
+    for (let i = 0; i < step; i++) {
+      if (this.letters[i].letter === ' ') continue;
+      this.letters[i].update(step);
     }
   }
 
-  update() {
-    if (this.row === 0) {
-      if (this.letters[this.letterIndex] === ' ') return;
-      if (floor(frameCount % (fps / 12)) === 0) {
-        this.letters[this.letterIndex].update();
-        this.letterIndex++;
-        if (this.letterIndex >= this.letters.length) {
-          this.isComplete = true;
-          this.letterIndex = 0;
-        }
-      }
-    }
-  }
-
-  draw() {
-    if (this.row === 0) {
-      for (let i = 0; i < this.letterIndex; i++) {
-        if (this.letters[i].letter === ' ') continue;
-        this.letters[i].draw();
-      }
-    }
-  }
-
-  olddraw() {
-    if (this.row === 0) {
-      this.letters.forEach(letterObj => {
-        if (letterObj.letter === ' ') return;
-        letterObj.draw();
-      });
+  draw(step) {
+    for (let i = 0; i < step; i++) {
+      if (this.letters[i].letter === ' ') continue;
+      this.letters[i].draw();
     }
   }
 }
 
 class LetterObject {
-  constructor(letter, x, y) {
+  constructor(letter, index) {
     this.letter = letter;
-    this.origX = x;
-    this.origY = y;
-    this.x = x;
-    this.y = y;
+    this.index = index;
     this.init();
   }
 
   init() {
     this.size = random(minFontSize, maxFontSize);
+    this.y = windowHeight / 2 + random(-this.size * 0.2, this.size * 0.2);
     this.color = colors[floor(random(0, colors.length))];
     this.fontObject = random(fonts);
-    this.y = this.origY + random(-this.size * 0.2, this.size * 0.2);
+  }
+  
+  update(step) {
+    this.x = windowWidth / 2 - (step - this.index) * this.size;
     textSize(this.size);
     this.bbox = this.fontObject.textBounds(this.letter, this.x, this.y);
     this.borderPadding = this.size / 2.5;
-  }
-  
-  update() {
-    this.init();
-
+    console.log(this.letter, this.index, this.x, this.y);
   }
   
   draw() {
     // background box
+    if (!this.bbox) return;
     if (this.color === colors[0]) {
       fill(colors[1]);
       stroke(colors[0]);
@@ -192,8 +127,8 @@ class LetterObject {
     fill(this.color);
     textFont(this.fontObject);
     textSize(this.size);
-    //textAlign(CENTER);
     text(this.letter, this.x, this.y);
+    //circle(this.x, this.y, this.size);
   }
 
   applyAlphaToColor(col, alpha) {
