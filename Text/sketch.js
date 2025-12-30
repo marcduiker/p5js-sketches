@@ -5,12 +5,13 @@
 
 let word;
 let colors = blackwhite;
-const minFontSize = 24;
-const maxFontSize = 48;
-const fps = 15;
+const minFontSize = 48;
+const maxFontSize = 64;
+const fontSizeMultiplier = 1.1;
+const fps = 30;
 let bgColor;
 let fonts = [];
-const messageText = "social media is holding you ransom, they don't want your money, they want your attention";
+let messageText = "social media is holding you hostage, they don't want your money, they want your attention.";
 let message;
 let step;
 
@@ -28,6 +29,8 @@ async function setup() {
 
   createCanvas(windowWidth, windowHeight);
   frameRate(fps);
+  let nrOfPaddingChars = ceil((windowWidth / 2) / maxFontSize * fontSizeMultiplier);
+  messageText += ' '.repeat(nrOfPaddingChars);
   bgColor = colors[0];
   step = 0;
   message = new Message(messageText);
@@ -37,10 +40,10 @@ function draw() {
   background(bgColor);
   message.update(step);
   message.draw(step);
-  if (frameCount % fps === 0) {
+  if (floor(frameCount % (fps / 4)) === 0) {
     step++;
   }
-  if (step >= message.length) {
+  if (step > message.length) {
     step = 0;
   }
 }
@@ -104,11 +107,10 @@ class LetterObject {
   }
   
   update(step) {
-    this.x = windowWidth / 2 - (step - this.index) * this.size;
+    this.x = windowWidth / 2 - (step - this.index) * maxFontSize * fontSizeMultiplier;
     textSize(this.size);
     this.bbox = this.fontObject.textBounds(this.letter, this.x, this.y);
     this.borderPadding = this.size / 2.5;
-    console.log(this.letter, this.index, this.x, this.y);
   }
   
   draw() {
