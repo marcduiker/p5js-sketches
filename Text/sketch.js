@@ -1,4 +1,4 @@
-/// Ransom note
+/// Ransom notes
 /// Marc Duiker
 /// https://marcduiker.dev
 /// Dec 2025
@@ -6,112 +6,183 @@
 let word;
 let colors = blackwhite;
 const minFontSize = 24;
-const maxFontSize = 32;
+const maxFontSize = 48;
+const fps = 15;
 let bgColor;
 let fonts = [];
-const textMessage = "Hello there, how are you?";
+let texts = [];
+let messages = [];
+let isComplete;
 
 async function setup() {
-  fonts.push(await loadFont('./assets/Aldrich-Regular.ttf'));
-  fonts.push(await loadFont('./assets/AnonymousPro-Regular.ttf'));
-  fonts.push(await loadFont('./assets/CourierPrime-Regular.ttf'));
-  fonts.push(await loadFont('./assets/Jacquard12-Regular.ttf'));
-  fonts.push(await loadFont('./assets/Jersey10-Regular.ttf'));
-  fonts.push(await loadFont('./assets/SpaceGrotesk-VariableFont_wght.ttf'));
-  fonts.push(await loadFont('./assets/SpecialElite-Regular.ttf'));
-  fonts.push(await loadFont('./assets/StardosStencil-Regular.ttf'));
-  fonts.push(await loadFont('./assets/SyneMono-Regular.ttf'));
-  fonts.push(await loadFont('./assets/Zain-Regular.ttf'));
+  fonts.push(await loadFont('./assets/Arial.ttf'));
+  fonts.push(await loadFont('./assets/Arial Bold.ttf'));
+  fonts.push(await loadFont('./assets/Arial Italic.ttf'));
+  fonts.push(await loadFont('./assets/Times New Roman.ttf'));
+  fonts.push(await loadFont('./assets/Times New Roman Bold.ttf'));
+  fonts.push(await loadFont('./assets/Times New Roman Italic.ttf'));
+  fonts.push(await loadFont('./assets/AmericanTypewriter.ttc'));
+  fonts.push(await loadFont('./assets/Caskaydia Cove NF.otf'));
+  fonts.push(await loadFont('./assets/Caskaydia Cove NF Bold.otf'));
+  fonts.push(await loadFont('./assets/Caskaydia Cove NF Italic.otf'));
 
-  //fonts = ["Aldrich", "Anonymous Pro", "Courier Prime", "Jacquard 12", "Jersey 10", "Space Grotesk", "Special Elite", "Stardos Stencil", "Syne Mono", "Zain"];
   createCanvas(windowWidth, windowHeight);
-  frameRate(30);
+  frameRate(fps);
   bgColor = colors[0];
-
-  word = new Word(textMessage, windowWidth / 2 - textMessage.length * 16, windowHeight / 2);
+  texts.push('01234 56789');
+  texts.push('987 6543210');
+  texts.push('.;!<(#$>?*.');
+  texts.forEach((msg, index) => {
+    messages.push(new Message(msg, index, texts.length - 1));
+  });
 }
 
 function draw() {
   background(bgColor);
-  word.update();
-  word.draw();
+  
+  messages.forEach(message => {
+    message.update();
+    message.draw();
+    if (message.isComplete) {
+      isComplete = message.isComplete;
+      return;
+    }
+  });
+  if (isComplete) {
+    messages.forEach(message => {
+      message.updateRow();
+    });
+    isComplete = false;
+  }
+
+  // Determines when the final message has been shown
+  // and the messages should cycle from the beginning.
+  if (messages[messages.length-1].row === -1) {
+    messages.forEach(message => {
+      message.resetRow();
+    });
+  }
 }
 
 function keyPressed() {
   if (key === 's') {
-    saveGif('text-1', 15);
+    let timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    saveGif(`${timestamp}-ransom-notes`, 15);
   }
 }
 
-class Word {
-  constructor(word, x, y) {
-    this.word = word;
-    this.size = random(minFontSize, maxFontSize);
-    this.x = x;
-    this.y = y;
+class Message {
+  constructor(message, index, maxIndex) {
+    this.word = message;
+    this.index = index;
+    this.maxIndex = maxIndex;
+    this.row = index;
+    this.size = maxFontSize;
+    this.x = windowWidth / 2 - (this.word.length * this.size) / 2;
+    if (this.row === 0) {
+      this.initRow0();
+    }
+  }
+
+  initRow0() {
+    this.isComplete = false;
+    this.y = windowHeight / 2;
     this.letterIndex = 0;
     this.letters = [];
     this.createLetters();
   }
 
+  resetRow() {
+    this.row = this.index;
+  }
+
   createLetters() {
     for (let i = 0; i < this.word.length; i++) {
       let letter = this.word.charAt(i);
-      let x = this.x + i * this.size * 1.3;
+      let x = this.x + i * this.size * 1.1;
       let y = this.y;
-      this.letters.push(new LetterObject(letter, this.size, x, y));
+      this.letters.push(new LetterObject(letter, x, y));
+    }
+  }
+
+  // Row numbers per iteration
+  // Iteration 1   2   3
+  //           ---------
+  //           0  -1  -2
+  //           1   0  -1
+  //           2   1   0
+  updateRow() {
+    this.row--;
+    this.isComplete = false;
+    if (this.row === 0) {
+      this.initRow0();
     }
   }
 
   update() {
-    if (this.letters[this.letterIndex] === ' ') return;
-    this.letters[this.letterIndex].update();
-    this.letterIndex++;
-    if (this.letterIndex >= this.letters.length) {
-      this.letterIndex = 0;
+    if (this.row === 0) {
+      if (this.letters[this.letterIndex] === ' ') return;
+      if (floor(frameCount % (fps / 8)) === 0) {
+        this.letters[this.letterIndex].update();
+        this.letterIndex++;
+        if (this.letterIndex >= this.letters.length) {
+          this.isComplete = true;
+          this.letterIndex = 0;
+        }
+      }
     }
   }
 
   draw() {
-    this.letters.forEach(letterObj => {
-      if (letterObj.letter === ' ') return;
-      letterObj.draw();
-    });
+    if (this.row === 0) {
+      this.letters.forEach(letterObj => {
+        if (letterObj.letter === ' ') return;
+        letterObj.draw();
+      });
+    }
   }
 }
 
 class LetterObject {
-  constructor(letter, size, x, y) {
+  constructor(letter, x, y) {
     this.letter = letter;
-    this.size = size;
     this.origX = x;
     this.origY = y;
     this.x = x;
     this.y = y;
-    this.color = colors[floor(random(0, colors.length))];
-    this.fontObject = random(fonts);
-    this.bbox = this.fontObject.textBounds(this.letter, this.x, this.y);
-    this.borderPadding = this.size / 3;
+    this.init();
   }
-  
-  update() {
+
+  init() {
+    this.size = random(minFontSize, maxFontSize);
     this.color = colors[floor(random(0, colors.length))];
     this.fontObject = random(fonts);
     this.y = this.origY + random(-this.size * 0.2, this.size * 0.2);
+    textSize(this.size);
     this.bbox = this.fontObject.textBounds(this.letter, this.x, this.y);
+    this.borderPadding = this.size / 2.5;
+  }
+  
+  update() {
+    this.init();
   }
   
   draw() {
+    // background box
     if (this.color === colors[0]) {
-      fill(colors[1])
+      fill(colors[1]);
+      stroke(colors[0]);
     } else {
-      noFill();
+      fill(colors[0])
+      stroke(colors[1]);
     }
-    stroke('white');
+    
     rect(this.bbox.x - this.borderPadding, this.bbox.y - this.borderPadding, this.bbox.w + this.borderPadding * 2, this.bbox.h + this.borderPadding * 2);
+    // text
     fill(this.color);
     textFont(this.fontObject);
     textSize(this.size);
+    //textAlign(CENTER);
     text(this.letter, this.x, this.y);
   }
 
