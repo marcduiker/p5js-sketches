@@ -5,8 +5,8 @@
 
 let word;
 let colors = blackwhite;
-const minFontSize = 48;
-const maxFontSize = 64;
+let minFontSize;
+let maxFontSize;
 const fontSizeMultiplier = 1.1;
 const fps = 30;
 let bgColor;
@@ -26,10 +26,18 @@ async function setup() {
   fonts.push(await loadFont('./assets/Caskaydia Cove NF.otf'));
   fonts.push(await loadFont('./assets/Caskaydia Cove NF Bold.otf'));
   fonts.push(await loadFont('./assets/Caskaydia Cove NF Italic.otf'));
-
-  createCanvas(windowWidth, windowHeight);
   frameRate(fps);
-  let nrOfPaddingChars = ceil((windowWidth / 2) / maxFontSize * fontSizeMultiplier);
+  init();
+}
+
+function init() {
+  let isHorizontal = windowWidth >= windowHeight;
+  console.log(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight);
+  minFontSize = isHorizontal ? floor(windowWidth / 35) : floor(windowWidth / 17);
+  maxFontSize = isHorizontal ? floor(windowWidth / 20) : floor(windowWidth / 10);
+  let nrOfPaddingChars = ceil((windowWidth / 2) / (maxFontSize * fontSizeMultiplier));
+  console.log('nrOfPaddingChars', nrOfPaddingChars);
   messageText += ' '.repeat(nrOfPaddingChars);
   bgColor = colors[0];
   step = 0;
@@ -38,6 +46,10 @@ async function setup() {
 
 function draw() {
   background(bgColor);
+  noFill();
+  stroke(colors[1]);
+  let rnd = random(-10, 10);
+  rect(0 ,windowHeight *1/3 + rnd, windowWidth, windowHeight * 1/3);
   message.update(step);
   message.draw(step);
   if (floor(frameCount % (fps / 4)) === 0) {
@@ -101,19 +113,32 @@ class LetterObject {
 
   init() {
     this.size = random(minFontSize, maxFontSize);
-    this.y = windowHeight / 2 + random(-this.size * 0.2, this.size * 0.2);
+    this.y = windowHeight / 2 + this.size/3 + random(-this.size * 0.2, this.size * 0.2);
     this.color = colors[floor(random(0, colors.length))];
     this.fontObject = random(fonts);
+    this.isZero = false;
   }
   
   update(step) {
-    this.x = windowWidth / 2 - (step - this.index) * maxFontSize * fontSizeMultiplier;
+    let stepMinIndex = step - this.index;
+    this.isZero = stepMinIndex === 1;
+    this.x = windowWidth / 2 - stepMinIndex * maxFontSize * fontSizeMultiplier + (maxFontSize * fontSizeMultiplier / 2);
     textSize(this.size);
     this.bbox = this.fontObject.textBounds(this.letter, this.x, this.y);
     this.borderPadding = this.size / 2.5;
   }
   
   draw() {
+    if (this.isZero) {
+      strokeWeight(2);
+      stroke(colors[1]);
+      let factor1 = 2;
+      fill(colors[1]);
+      rect(this.bbox.x - this.borderPadding * factor1, this.bbox.y - this.borderPadding * factor1, this.bbox.w + this.borderPadding * factor1 * 2, this.bbox.h + this.borderPadding * factor1 * 2);
+      noFill();
+      rect(this.bbox.x - this.borderPadding * factor1, 0, this.bbox.w + this.borderPadding * factor1 * 2, windowHeight);
+    }
+    
     // background box
     if (!this.bbox) return;
     if (this.color === colors[0]) {
@@ -124,18 +149,24 @@ class LetterObject {
       stroke(colors[1]);
     }
     
+    strokeWeight(2);
     rect(this.bbox.x - this.borderPadding, this.bbox.y - this.borderPadding, this.bbox.w + this.borderPadding * 2, this.bbox.h + this.borderPadding * 2);
+    
     // text
     fill(this.color);
+    noStroke();
     textFont(this.fontObject);
     textSize(this.size);
     text(this.letter, this.x, this.y);
-    //circle(this.x, this.y, this.size);
   }
 
   applyAlphaToColor(col, alpha) {
     let c = color(col);
     return color(red(c), green(c), blue(c), alpha);
   }
+}
+
+function windowResized() {
+  init();
 }
 
