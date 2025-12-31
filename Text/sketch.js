@@ -14,6 +14,8 @@ let fonts = [];
 let messageText = "social media is holding you hostage, they don't want your money, they want your attention.";
 let message;
 let step;
+let doPlay = false;
+let env, filter, noiseGen;
 
 async function setup() {
   fonts.push(await loadFont('./assets/Arial.ttf'));
@@ -42,21 +44,29 @@ function init() {
   bgColor = colors[0];
   step = 0;
   message = new Message(messageText);
+
+  env = new p5.Envelope(0.1, 0.1, 0.1, 0);
+  filter = new p5.BandPass();
+  noiseGen = new p5.Noise('white');
+  noiseGen.disconnect();
+  noiseGen.connect(filter);
 }
 
 function draw() {
   background(bgColor);
-  noFill();
-  stroke(colors[1]);
-  let rnd = random(-10, 10);
-  rect(0 ,windowHeight *1/3 + rnd, windowWidth, windowHeight * 1/3);
-  message.update(step);
-  message.draw(step);
-  if (floor(frameCount % (fps / 4)) === 0) {
-    step++;
-  }
-  if (step > message.length) {
-    step = 0;
+  if (doPlay) {
+    noFill();
+    stroke(colors[1]);
+    let rnd = random(-10, 10);
+    rect(0 ,windowHeight *1/3 + rnd, windowWidth, windowHeight * 1/3);
+    message.update(step);
+    message.draw(step);
+    if (floor(frameCount % (fps / 4)) === 0) {
+      step++;
+    }
+    if (step > message.length) {
+      step = 0;
+    }
   }
 }
 
@@ -64,6 +74,16 @@ function keyPressed() {
   if (key === 's') {
     let timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     saveGif(`${timestamp}-ransom-notes`, 15);
+  }
+
+  if (key === 'p' || key === 'P') {
+    doPlay = !doPlay;
+  }
+
+  if (doPlay) {
+    noiseGen.start();
+  } else {
+    noiseGen.stop();
   }
 }
 
@@ -130,6 +150,9 @@ class LetterObject {
   
   draw() {
     if (this.isZero) {
+      filter.freq(random(500, 2000));
+      filter.res(random(20, 40));
+      env.play(noiseGen);
       strokeWeight(2);
       stroke(colors[1]);
       let factor1 = 2;
