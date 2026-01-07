@@ -9,6 +9,7 @@ const fps = 24;
 let bgColor;
 let windowW, windowH;
 let letters;
+let doStart;
 
 async function setup() {
   frameRate(fps);
@@ -16,6 +17,7 @@ async function setup() {
 }
 
 function init() {
+  doStart = false;
   windowW = 800;
   windowH = 800;
   gridSize = 15;
@@ -25,7 +27,7 @@ function init() {
   let padding = 20;
   letters = [
     // G
-    new Letter("G", 100, 300, size, -3 * size - 3 * padding, 
+    new Letter("G", size, -3 * size - 3 * padding, 
       [
         new Shape(0, -windowH / 2, 0, size, colors[1]),
         new Shape(size * 2/8, 0, 0, size * 6/8, colors[0]),
@@ -33,7 +35,7 @@ function init() {
       ]
     ),
     // E
-    new Letter("E", 100, 300, size, -2 * size - 2 * padding,
+    new Letter("E", size, -2 * size - 2 * padding,
       [
         new Shape(0, windowH / 2, 0, size, colors[1]),
         new Shape(size * 2/8, 0, 0, size * 6/8, colors[0]),
@@ -41,29 +43,29 @@ function init() {
       ]
     ),
     // N
-    new Letter("N", 100, 300, size, -1 * size - 1 * padding,
+    new Letter("N", size, -1 * size - 1 * padding,
       [
         new Shape(0, -windowH / 2, 0, size, colors[1]),
         new Shape(0, size * 2/8, size * 2/8, size * 6/8, colors[0]),
       ]
     ),
     // U
-    new Letter("U", 100, 300, size, 0 * size + 0 * padding,
+    new Letter("U", size, 0 * size + 0 * padding,
       [
         new Shape(0, windowH / 2, 0, size, colors[1]),
         new Shape(0, -size * 2/8, -size * 2/8, size * 6/8, colors[0]),
       ]
     ),
     // A
-    new Letter("A", 100, 300, size, 1 * size + 1 * padding,
+    new Letter("A", size, 1 * size + 1 * padding,
       [
         new Shape(0, -windowH / 2, 0, size, colors[1]),
         new Shape(0, size * 2/8, size * 2/8, size * 6/8, colors[0]),
-        new Shape(0, windowH / 2, size * 1/8, size * 1/8, size * 3/8, colors[1]),
+        new Shape(0, windowH / 2, size * 1/8, size * 3/8, colors[1]),
       ]
     ),
     // R
-    new Letter("R", 100, 300, size, 2 * size + 2 * padding,
+    new Letter("R", size, 2 * size + 2 * padding,
       [
         new Shape(0, windowH / 2, 0, size, colors[1]),
         new Shape(size * 2/8, 0, 0, size * 6/8, colors[0]),
@@ -71,7 +73,7 @@ function init() {
       ]
     ),
     // Y
-    new Letter("Y", 100, 300, size, 3 * size + 3 * padding,
+    new Letter("Y", size, 3 * size + 3 * padding,
       [
         new Shape(0, -windowH / 2, 0, size, colors[1]),
         new Shape(0, -size * 2/8, -size * 2/8, size * 6/8, colors[0]),
@@ -83,24 +85,24 @@ function init() {
 
 function draw() {
   background(applyAlphaToColor(bgColor, 25));
-  push();
-  translate(windowW / 2, windowH / 2);
-  letters.forEach(letter => {
-    letter.update();
-    letter.draw();
-  });
-  pop();
+  if (doStart) {
+    push();
+    translate(windowW / 2, windowH / 2);
+    letters.forEach(letter => {
+      letter.update();
+      letter.draw();
+    });
+    pop();
+  }
 }
 
 class Letter {
-  constructor(letter, x, y, size, offset, shapes) {
-    this.init(letter, x, y, size, offset, shapes);
+  constructor(letter, size, offset, shapes) {
+    this.init(letter, size, offset, shapes);
   }
 
-  init(letter, x, y, size, offset, shapes) {
+  init(letter, size, offset, shapes) {
     this.letter = letter;
-    this.x = x;
-    this.y = y;
     this.size = size;
     this.offset = offset;
     this.shapes = shapes;
@@ -164,8 +166,9 @@ function applyAlphaToColor(col, alpha) {
 function keyPressed() {
   console.log('key pressed', key);
   if (key === 's') {
+    doStart = true;
     let timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    saveGif(`${timestamp}-genuary-5`, 200, { units: 'frames', delay: 0 } );
+    saveGif(`${timestamp}-genuary-5`, 180, { units: 'frames'} );
   }
   return;
 }
