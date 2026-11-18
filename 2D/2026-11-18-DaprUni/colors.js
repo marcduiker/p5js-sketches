@@ -1,4 +1,4 @@
-// Colors sampled from the Dapr University - Workflow Aspire Track badge
+// Colors sampled from the Dapr University badge
 const daprUni = [
   "#1c1b29", // 0 dark navy background
   "#14532d", // 1 deep green (circuit traces)
