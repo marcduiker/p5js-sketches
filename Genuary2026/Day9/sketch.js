@@ -5,17 +5,17 @@
 
 let word;
 let colors = dreamhaze8;
-const fps = 3;
-const noiseSeedIndex = 10;
+const fps = 24;
 let bgColor;
 let windowW, windowH;
-let noiseDelta = 0.1;
 let gridSize;
 let cells;
 let cellSize;
 let cellPadding;
 let leftMargin, topMargin;
-let currentVName;
+let y;
+let ruleIndex;
+let ruleString;
 
 async function setup() {
   frameRate(fps);
@@ -25,20 +25,36 @@ async function setup() {
 function init() {
   windowW = 700;
   windowH = 700;
-  gridSize = 25;
+  gridSize = 121; // Use a uneven number
   createCanvas(windowW, windowH);
-  noiseDetail(6, 0.3);
-  noiseSeed(noiseSeedIndex);
   bgColor = colors[0];
+  y = 0;
   updateGrid();
+  ruleString = "00011110"; //"00011110"; //"11000010" //"10101001"
+  console.log('rule:', ruleString);
+}
+
+function shiftRuleString() {
+  ruleString = ruleString.substring(1) + ruleString.substring(0, 1);
+}
+
+function createRuleString() {
+  ruleString = "";
+  for ( let j = 0; j < 8; j++) {
+    ruleString += nf(random([0,1]));
+  }
+  let oneCount = (ruleString.match(/1/g) || []).length;
+  if (oneCount < 3 || oneCount > 6)
+  {
+    createRuleString();
+  }
 }
 
 function updateGrid() {
-  cellPadding = 5;
+  cellPadding = 1;
   cells = [];
   leftMargin = 25;
   topMargin = leftMargin;
-  currentVName = 'v1';
 
   cellSize = (windowW - leftMargin * 2 - (cellPadding * gridSize -1)) / (gridSize);
   for (let x = 0; x < gridSize; x++) {
@@ -49,20 +65,23 @@ function updateGrid() {
 }
 
 function draw() {
-  background(bgColor);
+  background(applyAlphaToColor(bgColor, 5));
   for (let x = 0; x < gridSize; x++) {
-    for (let y = 0; y < gridSize; y++) {
+    let cell = cells[x * gridSize + y];
+    cell.update();
+    cell.draw();
+  }
+  y++;
+  if (y >= gridSize) {
+    shiftRuleString();
+    //createRuleString();
+    console.log('rule:', ruleString);
+    y = 0;
+    for (let x = 0; x < gridSize; x++) {
       let cell = cells[x * gridSize + y];
-      cell.update();
-      cell.draw();
+      cell.setRandomValues();
     }
   }
-  if (currentVName === 'v1') {
-    currentVName = 'v2';
-  } else {
-    currentVName = 'v1';
-  }
-  console.log('switched to', currentVName);
 }
 
 function keyPressed() {
@@ -89,76 +108,88 @@ class Cell {
     this.y = topMargin + this.yi * (this.size + this.padding);
     this.minV = 0;
     this.maxV = 1;
-    this.v1 = random([this.minV, this.maxV]);
-    this.v2 = this.val1;
+    this.v = this.minV;
+    this.setRandomValues(); // this.setCenterValue();
+  }
+
+  setCenterValue() {
+    if (this.yi === 0 && this.xi === (floor(gridSize/2))) {
+      this.v = this.maxV;
+    }
+  }
+
+  setRandomValues() {
+    if (this.yi === 0) {
+      this.v = random([this.minV, this.maxV]);
+    }
   }
 
   update() {
     let sumString = this.sumStringNeighborValues(3);
     let newValue;
-    switch(sumString) {
-      case "000":
-        newValue = 1;
-        break;
-      case "001":
-        newValue = 1;
-        break;
-      case "010":
-        newValue = 0;
-        break;
-      case "100":
-        newValue = 1;
-        break;
-      case "101":
-        newValue = 1;
-        break;
-      case "110":
-        newValue = 0;
-        break;
-      case "011":
-        newValue = 0;
-        break;
-      case "111":
-        newValue = 0;
-        break;
-      default:
-        newValue = random([this.minV, this.maxV]);
-        break;
-    }
-    if (currentVName === 'v1') {
-      this.v2 = newValue;
-    } else {
-      this.v1 = newValue;
+    newValue = genericRule(sumString, this.v);
+    this.updateNewCell(newValue);
+  }
+
+  updateNewCell(v) {
+    if (this.yi < gridSize - 1) {
+      cells[(this.xi) * gridSize + this.yi + 1].v = v;
     }
   }
 
   sumStringNeighborValues(size) {
     let sumString = '';
     let delta = floor(size/2);
+    let val;
     for (let dx = -delta; dx < delta + 1; dx++) {
         // skip out of bounds
         if (this.xi + dx < 0 || this.xi + dx >= gridSize) continue;
-        if (currentVName === 'v1') {
-          let val1 = cells[(this.xi + dx) * gridSize + this.yi].v1;
-          sumString += nf(val1);
-        } else {
-          let val2 = cells[(this.xi + dx) * gridSize + this.yi].v2;
-          sumString += nf(val2);
-        }
+        val = cells[(this.xi + dx) * gridSize + this.yi].v;
+        sumString += nf(val);
     }
     return sumString;
   }
 
   draw() {
-    if (currentVName === 'v1') {
-      fill(colors[this.v2])
-    } else {
-      fill(colors[this.v1])
-    }
+    let cellColor = this.v === 1 ? random([colors[2], colors[4]]) : colors[0];
+    fill(cellColor);
     noStroke();
     rect(this.x, this.y, this.size, this.size);
   }
 }
+
+function genericRule(sumString, v) {
+    let newValue;
+    switch(sumString) {
+      case "000":
+        newValue = ruleString[0];
+        break;
+      case "001":
+        newValue = ruleString[1];
+        break;
+      case "010":
+        newValue = ruleString[2];
+        break;
+      case "011":
+          newValue = ruleString[3];
+          break;
+      case "100":
+        newValue = ruleString[4];
+        break;
+      case "101":
+        newValue = ruleString[5];
+        break;
+      case "110":
+        newValue = ruleString[6];
+        break;
+      case "111":
+        newValue = ruleString[7];
+        break;
+      default:
+        newValue = v;
+    }
+    return int(newValue);
+  }
 
 function applyAlphaToColor(col, alpha) {
     let c = color(col);
